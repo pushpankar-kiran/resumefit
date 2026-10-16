@@ -1,0 +1,707 @@
+{
+  "_comment": [
+    "Editable keyword aliases. Matching is case-insensitive.",
+    "synonyms: true two-way equivalents (AI = Artificial Intelligence). Either side matches the other.",
+    "variants: one-way. Resume wording on the right counts as the JD keyword on the left (alias tier, full credit), not the reverse: 'aws' satisfies Cloud Computing, but 'cloud' never satisfies AWS. Phrases listed here skip the head-word evidence rule.",
+    "A trailing * matches any word ending: 'prioritiz*' covers prioritize, prioritized, prioritization.",
+    "related: sibling groups (MySQL ~ PostgreSQL). A keyword with no other match earns partial 'related' credit only from a listed sibling in its group; sharing a word like 'management' is never enough."
+  ],
+  "synonyms": {
+    "Artificial Intelligence": [
+      "AI"
+    ],
+    "Generative AI": [
+      "GenAI",
+      "Gen AI"
+    ],
+    "Machine Learning": [
+      "ML"
+    ],
+    "Large Language Models": [
+      "LLM",
+      "LLMs"
+    ],
+    "Key Performance Indicators": [
+      "KPI",
+      "KPIs"
+    ],
+    "Objectives and Key Results": [
+      "OKR",
+      "OKRs"
+    ],
+    "Product Requirements Document": [
+      "PRD",
+      "PRDs",
+      "product requirement documents"
+    ],
+    "Business Requirements Document": [
+      "BRD",
+      "BRDs"
+    ],
+    "Go-to-Market": [
+      "GTM",
+      "go to market"
+    ],
+    "Program Management": [
+      "programme management"
+    ],
+    "Product Management": [
+      "product ownership"
+    ],
+    "Stakeholder Management": [
+      "stakeholder engagement",
+      "stakeholder alignment"
+    ],
+    "Cross-functional Collaboration": [
+      "cross-functional teams",
+      "cross-functional coordination"
+    ],
+    "Customer Relationship Management": [
+      "CRM"
+    ],
+    "Standard Operating Procedures": [
+      "SOP",
+      "SOPs"
+    ],
+    "Return on Investment": [
+      "ROI"
+    ],
+    "Software Development Life Cycle": [
+      "SDLC"
+    ],
+    "User Acceptance Testing": [
+      "UAT"
+    ],
+    "Minimum Viable Product": [
+      "MVP"
+    ],
+    "Proof of Concept": [
+      "PoC",
+      "POC"
+    ],
+    "Business Intelligence": [
+      "BI"
+    ],
+    "Robotic Process Automation": [
+      "RPA"
+    ],
+    "Total Cost of Ownership": [
+      "TCO"
+    ],
+    "Service Level Agreement": [
+      "SLA",
+      "SLAs"
+    ],
+    "Requests for Proposal": [
+      "RFP",
+      "RFPs"
+    ],
+    "Profit and Loss": [
+      "P&L"
+    ]
+  },
+  "variants": {
+    "Cloud Computing": [
+      "cloud",
+      "cloud & ai apis",
+      "cloud computing",
+      "aws",
+      "azure",
+      "gcp"
+    ],
+    "Prioritization": [
+      "prioritiz*",
+      "prioritis*",
+      "release priorities"
+    ],
+    "Requirements Gathering": [
+      "requirements",
+      "user stories",
+      "acceptance criteria",
+      "requirement analysis",
+      "requirements documentation"
+    ],
+    "Project Management": [
+      "project management",
+      "program management",
+      "project plans"
+    ],
+    "Change Management": [
+      "change management",
+      "change adoption"
+    ],
+    "Customer Focus": [
+      "customer-centric",
+      "customer-focused",
+      "customer experience"
+    ]
+  },
+  "related": {
+    "lang-js": [
+      "javascript",
+      "js",
+      "ecmascript",
+      "es6",
+      "es2015",
+      "typescript",
+      "ts"
+    ],
+    "lang-py": [
+      "python",
+      "py",
+      "python3"
+    ],
+    "lang-jvm": [
+      "java",
+      "java 8",
+      "java 11",
+      "java 17",
+      "j2ee",
+      "jee",
+      "kotlin",
+      "scala"
+    ],
+    "lang-sys": [
+      "go",
+      "golang",
+      "rust",
+      "c++",
+      "cpp",
+      "c plus plus",
+      "c"
+    ],
+    "lang-dotnet": [
+      "c#",
+      "c sharp",
+      "csharp",
+      ".net",
+      "dotnet",
+      "asp.net",
+      ".net core",
+      "asp.net core"
+    ],
+    "lang-php": [
+      "php",
+      "laravel"
+    ],
+    "mobile": [
+      "swift",
+      "objective-c",
+      "objc",
+      "dart",
+      "react native",
+      "flutter",
+      "mobile development",
+      "ios",
+      "android",
+      "mobile apps"
+    ],
+    "lang-data": [
+      "r",
+      "r programming",
+      "rstudio",
+      "matlab"
+    ],
+    "sql": [
+      "sql",
+      "structured query language",
+      "t-sql",
+      "tsql",
+      "pl/sql",
+      "plsql",
+      "ansi sql",
+      "sql analytics",
+      "sql queries",
+      "writing sql"
+    ],
+    "shell": [
+      "bash",
+      "shell scripting",
+      "shell",
+      "unix shell",
+      "zsh",
+      "powershell"
+    ],
+    "web": [
+      "html",
+      "html5",
+      "css",
+      "css3",
+      "scss",
+      "sass",
+      "less",
+      "tailwind css",
+      "tailwind",
+      "tailwindcss",
+      "jquery",
+      "accessibility",
+      "a11y",
+      "wcag",
+      "aria",
+      "responsive design",
+      "mobile-first design"
+    ],
+    "web3": [
+      "solidity",
+      "blockchain",
+      "web3",
+      "smart contracts",
+      "ethereum"
+    ],
+    "fe-framework": [
+      "react",
+      "react.js",
+      "reactjs",
+      "react js",
+      "next.js",
+      "nextjs",
+      "next js",
+      "vue.js",
+      "vue",
+      "vuejs",
+      "nuxt",
+      "nuxt.js",
+      "angular",
+      "angularjs",
+      "angular.js",
+      "svelte",
+      "sveltekit"
+    ],
+    "fe-state": [
+      "redux",
+      "redux toolkit",
+      "rtk"
+    ],
+    "build": [
+      "webpack",
+      "vite",
+      "rollup",
+      "esbuild"
+    ],
+    "be-js": [
+      "node.js",
+      "node",
+      "nodejs",
+      "node js",
+      "express",
+      "express.js",
+      "expressjs",
+      "nestjs",
+      "nest.js"
+    ],
+    "be-py": [
+      "django",
+      "flask",
+      "fastapi",
+      "fast api"
+    ],
+    "be-jvm": [
+      "spring boot",
+      "spring",
+      "spring framework",
+      "spring mvc"
+    ],
+    "be-ruby": [
+      "ruby on rails",
+      "rails",
+      "ror"
+    ],
+    "api": [
+      "rest apis",
+      "rest",
+      "restful",
+      "restful apis",
+      "rest api",
+      "restful services",
+      "restful api",
+      "graphql",
+      "apollo",
+      "graph ql",
+      "grpc",
+      "protocol buffers",
+      "protobuf",
+      "websockets",
+      "websocket",
+      "socket.io",
+      "api design",
+      "api development",
+      "openapi",
+      "swagger"
+    ],
+    "arch": [
+      "microservices",
+      "microservice",
+      "microservices architecture",
+      "service-oriented architecture",
+      "soa",
+      "event-driven architecture",
+      "event driven",
+      "event-driven",
+      "pub/sub",
+      "pubsub",
+      "system design",
+      "distributed systems",
+      "scalable systems",
+      "high availability"
+    ],
+    "rdbms": [
+      "postgresql",
+      "postgres",
+      "psql",
+      "mysql",
+      "mariadb",
+      "microsoft sql server",
+      "sql server",
+      "mssql",
+      "oracle database",
+      "oracle db",
+      "oracle"
+    ],
+    "nosql": [
+      "mongodb",
+      "mongo",
+      "mongoose",
+      "cassandra",
+      "apache cassandra",
+      "dynamodb",
+      "dynamo db",
+      "aws dynamodb"
+    ],
+    "cache": [
+      "redis",
+      "elasticache"
+    ],
+    "search": [
+      "elasticsearch",
+      "elastic search",
+      "opensearch",
+      "elk",
+      "elk stack"
+    ],
+    "streaming": [
+      "kafka",
+      "apache kafka",
+      "kafka streams",
+      "rabbitmq",
+      "amqp",
+      "sqs",
+      "message queues",
+      "message queue"
+    ],
+    "warehouse": [
+      "snowflake",
+      "bigquery",
+      "google bigquery",
+      "big query",
+      "redshift",
+      "amazon redshift",
+      "aws redshift",
+      "dbt",
+      "data build tool"
+    ],
+    "spark": [
+      "databricks",
+      "apache spark",
+      "spark",
+      "pyspark",
+      "spark sql",
+      "hadoop",
+      "hdfs",
+      "hive",
+      "mapreduce"
+    ],
+    "orchestration": [
+      "airflow",
+      "apache airflow"
+    ],
+    "data-eng": [
+      "etl",
+      "elt",
+      "etl pipelines",
+      "data pipelines",
+      "data pipeline",
+      "data modeling",
+      "dimensional modeling",
+      "star schema",
+      "data modelling",
+      "big data"
+    ],
+    "cloud": [
+      "aws",
+      "amazon web services",
+      "google cloud platform",
+      "gcp",
+      "google cloud",
+      "microsoft azure",
+      "azure",
+      "amazon s3",
+      "s3",
+      "amazon ec2",
+      "ec2",
+      "cloud computing"
+    ],
+    "serverless": [
+      "aws lambda",
+      "lambda",
+      "lambda functions",
+      "serverless",
+      "serverless framework",
+      "cloud functions",
+      "azure functions"
+    ],
+    "containers": [
+      "docker",
+      "containerization",
+      "containers",
+      "docker compose",
+      "dockerfile",
+      "kubernetes",
+      "k8s",
+      "eks",
+      "gke",
+      "aks",
+      "helm",
+      "openshift"
+    ],
+    "iac": [
+      "terraform",
+      "hcl",
+      "terraform cloud",
+      "infrastructure as code",
+      "iac",
+      "cloudformation",
+      "pulumi",
+      "cdk",
+      "aws cdk",
+      "ansible",
+      "chef",
+      "puppet"
+    ],
+    "cicd": [
+      "ci/cd",
+      "ci cd",
+      "continuous integration",
+      "continuous delivery",
+      "continuous deployment",
+      "ci/cd pipelines",
+      "jenkins",
+      "github actions",
+      "gh actions",
+      "gitlab ci",
+      "gitlab ci/cd",
+      "gitlab",
+      "circleci"
+    ],
+    "vcs": [
+      "git",
+      "github",
+      "version control",
+      "bitbucket"
+    ],
+    "os": [
+      "linux",
+      "unix",
+      "ubuntu",
+      "centos",
+      "rhel"
+    ],
+    "obs": [
+      "observability",
+      "monitoring",
+      "logging",
+      "tracing",
+      "opentelemetry",
+      "prometheus",
+      "grafana",
+      "datadog",
+      "new relic",
+      "splunk",
+      "sentry",
+      "site reliability engineering",
+      "sre",
+      "slos",
+      "slo",
+      "sla",
+      "incident response",
+      "on-call"
+    ],
+    "infra": [
+      "nginx",
+      "apache http server",
+      "load balancing",
+      "load balancer",
+      "networking",
+      "tcp/ip",
+      "dns",
+      "http",
+      "vpc"
+    ],
+    "testing": [
+      "unit testing",
+      "unit tests",
+      "tdd",
+      "test-driven development",
+      "test driven development",
+      "jest",
+      "vitest",
+      "mocha",
+      "chai",
+      "cypress",
+      "playwright",
+      "selenium",
+      "puppeteer",
+      "end-to-end testing",
+      "e2e testing",
+      "pytest",
+      "unittest"
+    ],
+    "ml": [
+      "machine learning",
+      "ml",
+      "machine-learning",
+      "deep learning",
+      "neural networks",
+      "natural language processing",
+      "nlp",
+      "computer vision",
+      "image recognition",
+      "large language models",
+      "llm",
+      "llms",
+      "generative ai",
+      "genai",
+      "gen ai",
+      "prompt engineering",
+      "rag",
+      "retrieval augmented generation",
+      "mlops",
+      "mlflow",
+      "kubeflow",
+      "sagemaker",
+      "model deployment"
+    ],
+    "ml-fw": [
+      "tensorflow",
+      "keras",
+      "pytorch",
+      "torch",
+      "scikit-learn",
+      "sklearn",
+      "scikit learn"
+    ],
+    "py-data": [
+      "pandas",
+      "numpy",
+      "dataframes"
+    ],
+    "bi": [
+      "data visualization",
+      "dashboards",
+      "dashboarding",
+      "data viz",
+      "tableau",
+      "power bi",
+      "powerbi",
+      "power-bi",
+      "looker",
+      "looker studio",
+      "google data studio"
+    ],
+    "office": [
+      "excel",
+      "microsoft excel",
+      "advanced excel",
+      "vlookup",
+      "pivot tables",
+      "spreadsheets"
+    ],
+    "product-analytics": [
+      "google analytics",
+      "ga4",
+      "google analytics 4",
+      "mixpanel",
+      "amplitude",
+      "heap",
+      "pendo"
+    ],
+    "pm-tools": [
+      "jira",
+      "atlassian jira",
+      "confluence",
+      "asana",
+      "trello",
+      "monday.com",
+      "linear"
+    ],
+    "design-tools": [
+      "figma",
+      "sketch",
+      "adobe xd",
+      "invision"
+    ],
+    "crm": [
+      "salesforce",
+      "sfdc",
+      "salesforce crm",
+      "crm",
+      "hubspot"
+    ],
+    "cert-cloud": [
+      "aws certified solutions architect",
+      "aws solutions architect",
+      "aws certified",
+      "aws saa",
+      "aws certification",
+      "google cloud professional cloud architect",
+      "gcp certified",
+      "google cloud certified",
+      "professional cloud architect",
+      "azure solutions architect expert",
+      "azure certified",
+      "az-305",
+      "az-900",
+      "azure fundamentals"
+    ],
+    "cert-k8s": [
+      "certified kubernetes administrator",
+      "cka",
+      "ckad"
+    ],
+    "cert-pm": [
+      "pmp",
+      "project management professional",
+      "pmp certified",
+      "pmp certification"
+    ],
+    "cert-agile": [
+      "certified scrummaster",
+      "csm",
+      "psm",
+      "professional scrum master",
+      "certified scrum product owner",
+      "cspo",
+      "pspo"
+    ],
+    "cert-sec": [
+      "cissp",
+      "comptia security+",
+      "security+",
+      "comptia security plus"
+    ],
+    "cert-fin": [
+      "cpa",
+      "certified public accountant",
+      "cfa",
+      "chartered financial analyst"
+    ],
+    "cert-ops": [
+      "six sigma certification",
+      "six sigma green belt",
+      "six sigma black belt",
+      "lean six sigma",
+      "itil",
+      "itil v4",
+      "itil foundation"
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+Jordan Rivera
+Austin, TX | jordan.rivera@example.com | (512) 555-0142 | linkedin.com/in/jordan-rivera-dev
+
+PROFESSIONAL SUMMARY
+Full-stack software engineer with 6 years of experience building React and Node.js applications for B2B SaaS products. Comfortable owning features end to end, from REST API design to TypeScript front ends and CI/CD pipelines.
+
+WORK EXPERIENCE
+Software Engineer II | Brightline Analytics | Mar 2022 – Present
+• Worked on backend APIs using Node.js and Express for the reporting platform.
+• Built a React and TypeScript dashboard used by 1,200+ enterprise customers, reducing support tickets by 18%.
+• Responsible for code reviews and mentoring two junior engineers.
+• Migrated legacy jQuery pages to React, cutting page load time from 4.1s to 1.6s.
+• Helped improve the CI/CD pipeline in GitHub Actions.
+
+Software Engineer | Copperleaf Health | Jun 2019 – Feb 2022
+• Developed REST APIs in Node.js and PostgreSQL for a patient scheduling product serving 40 clinics.
+• Participated in sprint planning and daily standups in an Agile team.
+• Wrote unit tests with Jest, raising coverage from 52% to 81%.
+• Implemented role-based access control with OAuth 2.0 and JWT.
+
+Junior Web Developer | Pixel & Pine Studio | Jan 2018 – May 2019
+• Built responsive marketing sites with HTML, CSS and JavaScript.
+• Assisted with WordPress maintenance for 15 small-business clients.
+
+EDUCATION
+B.S. Computer Science, University of Texas at Austin, 2017
+
+SKILLS
+JavaScript, TypeScript, React, Node.js, Express, PostgreSQL, REST APIs, Jest, Git, GitHub Actions, AWS (S3, EC2), Agile

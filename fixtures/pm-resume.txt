@@ -1,0 +1,28 @@
+Priya Shah
+priya.shah@example.com • +1 (415) 555-0199 • San Francisco, CA
+
+About Me
+Product manager with 7 years of experience shipping B2B SaaS products. I love turning customer problems into roadmaps that move metrics.
+
+Where I've Been
+Senior Product Manager — Northwind Software                  01/2021 - Present
+• Owned the roadmap for the billing and payments product line, growing net revenue retention from 104% to 117%.
+• Led discovery with 40+ customer interviews to define a self-serve onboarding flow that lifted activation by 22%.
+• Responsible for writing PRDs and user stories for the engineering team.
+• Partnered with design and engineering to ship usage-based pricing in two quarters.
+
+Product Manager — Lumen Retail Tech               Summer 2018 – Dec 2020
+• Managed the mobile checkout experience for 2M monthly users.
+• Worked on A/B tests to improve conversion.
+• Helped the sales team with enterprise demos.
+
+Associate Product Manager — Quill Labs                    Jun 2016 – Jul 2018
+• Supported the PM team on backlog grooming and sprint planning.
+• Analyzed funnel data in SQL and Excel to find drop-off points.
+
+Education
+MBA, Haas School of Business, UC Berkeley
+B.A. Economics, UCLA
+
+What I Know
+Roadmapping, Jira, Figma, SQL, A/B Testing, Stakeholder Management, Agile

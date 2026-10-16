@@ -1,0 +1,3 @@
+id,resume,jd,external_score,outcome,source
+demo-dev,../fixtures/dev-resume.txt,../fixtures/dev-jd.txt,,,"built-in sample (replace with your own)"
+demo-pm,../fixtures/pm-resume.txt,../fixtures/pm-jd.txt,,,"built-in sample (replace with your own)"

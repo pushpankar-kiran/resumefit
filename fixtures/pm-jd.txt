@@ -1,0 +1,26 @@
+Job Title: Senior Product Manager, Growth
+
+We are seeking a Senior Product Manager to lead our Growth team and drive acquisition, activation and monetization for our B2B SaaS platform.
+
+Responsibilities:
+- Own the growth product roadmap and define success metrics (OKRs/KPIs)
+- Run a high-velocity experimentation program (A/B testing) across the funnel
+- Conduct user research and customer interviews to uncover friction
+- Write clear PRDs and partner with engineering, design and marketing
+- Use data analysis in SQL and product analytics tools like Amplitude or Mixpanel to prioritize work
+- Communicate strategy to executive stakeholders
+
+Qualifications:
+- 6+ years of product management experience, including 2+ in growth or monetization
+- Proven track record with experimentation and A/B testing
+- Strong SQL skills and comfort with product analytics (Amplitude, Mixpanel, Looker)
+- Experience with pricing and packaging
+- Excellent stakeholder management and communication skills
+- Experience working in Agile/Scrum teams
+
+Preferred:
+- Experience with PLG (product-led growth) motions
+- Familiarity with Salesforce and HubSpot
+- Certified Scrum Product Owner (CSPO)
+
+Benefits: health, dental, 401(k), flexible PTO.

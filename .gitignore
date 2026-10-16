@@ -1,0 +1,14 @@
+node_modules
+.next
+.env*.local
+.env
+next-env.d.ts
+*.tsbuildinfo
+
+# calibration data stays local
+calibration/pairs/
+calibration/pairs.csv
+calibration/report.*
+
+# Tests that read your own resume/JD files: they stay on your machine
+tests/local/

@@ -1,0 +1,5 @@
+# Keep binary fixtures byte-for-byte (PDF offsets break if line endings change)
+*.pdf binary
+*.docx binary
+*.png binary
+*.jpg binary

@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 14% 98%;
+    --foreground: 0 0% 5%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 5%;
+    --muted: 40 8% 94%;
+    --muted-foreground: 45 3% 32%;
+    --accent: 214 70% 95%;
+    --accent-foreground: 214 67% 30%;
+    --primary: 214 67% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 8% 92%;
+    --secondary-foreground: 0 0% 10%;
+    --destructive: 0 62% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 40 6% 87%;
+    --input: 40 6% 84%;
+    --ring: 214 67% 50%;
+    --radius: 0.75rem;
+    /* Status palette (fixed; always paired with an icon + label) */
+    --good: 120 86% 34%;
+    --warn: 41 96% 54%;
+    --bad: 0 62% 52%;
+    --series-1: #2a78d6;
+    --surface-1: #fcfcfb;
+    --font-sans: ui-sans-serif, "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --background: 60 3% 8%;
+      --foreground: 0 0% 98%;
+      --card: 60 3% 11%;
+      --card-foreground: 0 0% 98%;
+      --muted: 60 3% 16%;
+      --muted-foreground: 53 8% 74%;
+      --accent: 214 40% 20%;
+      --accent-foreground: 214 80% 82%;
+      --primary: 214 76% 56%;
+      --secondary: 60 3% 18%;
+      --secondary-foreground: 0 0% 96%;
+      --border: 60 3% 22%;
+      --input: 60 3% 26%;
+      --series-1: #3987e5;
+      --surface-1: #1a1a19;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --background: 60 3% 8%;
+    --foreground: 0 0% 98%;
+    --card: 60 3% 11%;
+    --card-foreground: 0 0% 98%;
+    --muted: 60 3% 16%;
+    --muted-foreground: 53 8% 74%;
+    --accent: 214 40% 20%;
+    --accent-foreground: 214 80% 82%;
+    --primary: 214 76% 56%;
+    --secondary: 60 3% 18%;
+    --secondary-foreground: 0 0% 96%;
+    --border: 60 3% 22%;
+    --input: 60 3% 26%;
+    --series-1: #3987e5;
+    --surface-1: #1a1a19;
+    color-scheme: dark;
+  }
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
+}

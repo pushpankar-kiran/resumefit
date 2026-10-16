@@ -1,0 +1,50 @@
+{
+  "name": "ats-resume-analyzer",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3221",
+    "build": "next build",
+    "start": "next start -p 3221",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "calibrate": "tsx scripts/calibrate.ts",
+    "ats": "tsx scripts/ats-cli.ts",
+    "build:templates": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/templates/build-templates.ps1"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0",
+    "@radix-ui/react-slot": "^1.5.0",
+    "@radix-ui/react-tabs": "^1.2.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "dictionary-en": "^4.0.0",
+    "diff": "^9.0.0",
+    "framer-motion": "^14.1.0",
+    "jspdf": "^4.2.1",
+    "jszip": "^3.10.2",
+    "lucide-react": "^1.55.0",
+    "mammoth": "^1.13.0",
+    "next": "^15.5.4",
+    "nspell": "^2.1.5",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-dropzone": "^20.1.3",
+    "recharts": "^2.15.4",
+    "tailwind-merge": "^3.7.0",
+    "unpdf": "^1.8.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/nspell": "^2.1.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.30",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.4"
+  }
+}

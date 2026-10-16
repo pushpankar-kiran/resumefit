@@ -1,0 +1,55 @@
+{
+  "name": "Jordan Rivera",
+  "title": "Senior Software Engineer",
+  "email": "jordan.rivera@example.com",
+  "phone": "(512) 555-0142",
+  "linkedin": "linkedin.com/in/jordan-rivera-dev",
+  "github": "github.com/jrivera-dev",
+  "location": "Austin, TX",
+  "summary": "Full-stack software engineer with 6 years of experience building React and Node.js applications for B2B SaaS products. Owns features end to end, from REST API design to TypeScript front ends and CI/CD pipelines.",
+  "roles": [
+    {
+      "title": "Software Engineer II",
+      "company": "Brightline Analytics",
+      "dates": "Mar 2022 – Present",
+      "bullets": [
+        "Built a React and TypeScript dashboard used by 1,200+ enterprise customers, reducing support tickets by 18%.",
+        "Migrated legacy jQuery pages to React, cutting page load time from 4.1s to 1.6s.",
+        "Designed REST APIs in Node.js and Express for the reporting platform serving 40M requests per month."
+      ]
+    },
+    {
+      "title": "Software Engineer",
+      "company": "Copperleaf Health",
+      "dates": "Jun 2019 – Feb 2022",
+      "bullets": [
+        "Developed REST APIs in Node.js and PostgreSQL for a scheduling product serving 40 clinics.",
+        "Wrote unit tests with Jest, raising coverage from 52% to 81%.",
+        "Implemented role-based access control with OAuth 2.0 and JWT."
+      ]
+    },
+    {
+      "title": "Junior Web Developer",
+      "company": "Pixel & Pine Studio",
+      "dates": "Jan 2018 – May 2019",
+      "bullets": [
+        "Built responsive marketing sites with HTML, CSS and JavaScript for 15 clients."
+      ]
+    }
+  ],
+  "education": "B.S. Computer Science, University of Texas at Austin, 2017",
+  "skills": [
+    "JavaScript",
+    "TypeScript",
+    "React",
+    "Node.js",
+    "Express",
+    "PostgreSQL",
+    "REST APIs",
+    "Jest",
+    "Git",
+    "GitHub Actions",
+    "AWS",
+    "Docker"
+  ]
+}

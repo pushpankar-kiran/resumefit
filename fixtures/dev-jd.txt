@@ -1,0 +1,28 @@
+Senior Full-Stack Engineer
+
+About the role
+We're looking for a Senior Full-Stack Engineer to help scale our developer platform. You'll own services end to end and partner with product and design.
+
+What you'll do
+- Design and build scalable microservices in Node.js and TypeScript
+- Build performant React front ends with GraphQL data layers
+- Containerize services with Docker and deploy them to Kubernetes on AWS
+- Improve CI/CD pipelines and observability
+- Mentor engineers and lead code reviews
+
+Requirements
+- 5+ years of professional software engineering experience
+- Strong proficiency in TypeScript, React and Node.js
+- Experience designing REST APIs and GraphQL schemas
+- Hands-on experience with Docker and Kubernetes
+- Experience with PostgreSQL or another relational database
+- Solid understanding of CI/CD and automated testing
+
+Nice to have
+- AWS Lambda and serverless architectures
+- Terraform or other Infrastructure as Code tools
+- Experience with Redis and Kafka
+- AWS Certified Solutions Architect
+
+About us
+We're a remote-first company building tools developers love. We offer competitive salary, equity and unlimited PTO.
