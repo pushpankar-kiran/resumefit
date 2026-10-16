@@ -1,0 +1,73 @@
+name: Bug report
+description: A resume or job description is parsed, matched or scored incorrectly, or the app misbehaves
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug! Please **don't attach a real resume**: describe the layout, or share a copy with personal details replaced. Running `npm run ats -- <file> --show-extracted` and pasting the relevant part of the output helps a lot.
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: From package.json, or `git rev-parse --short HEAD`.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: source
+    attributes:
+      label: What were you analysing?
+      options:
+        - PDF (single column)
+        - PDF (two columns / sidebar)
+        - Word (.docx)
+        - Pasted text
+        - Job description parsing
+        - Other / not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part looks wrong?
+      options:
+        - Name / contact details
+        - Sections or headings
+        - Roles, dates or experience years
+        - Education
+        - Keyword matches
+        - Knockout screen
+        - Formatting findings
+        - Rewrites / auto-tailor
+        - Report or export
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened?
+      description: Include the extracted text or error message if you can (with personal details removed).
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: OS, Node.js version & browser
+      placeholder: "Windows 11, Node 20.18, Chrome 141"
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Confirmation
+      options:
+        - label: I am not attaching a real resume or any personal details I don't want public.
+          required: true

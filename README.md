@@ -1,17 +1,54 @@
-# ATS Resume Analyzer
+<h1 align="center">ResumeFit — ATS Resume Analyzer</h1>
 
-Compares a resume (PDF, DOCX or TXT) against a job description. It returns a 0–100 match score, finds keyword gaps, flags formatting and parsing risks, and helps you rewrite weak bullets.
+<p align="center">
+  Score a resume (<b>PDF, Word or text</b>) against a job description the way an applicant tracking system reads it: keyword match <b>with evidence</b>, knockout screening, formatting and parse health, and layout-preserving tailoring. Runs <b>entirely on your machine</b>; no API key needed.
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-2f6f62.svg"></a>
+  <a href="../../actions/workflows/ci.yml"><img alt="CI" src="https://github.com/pushpankar-kiran/resumefit/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="../../actions/workflows/codeql.yml"><img alt="CodeQL" src="https://github.com/pushpankar-kiran/resumefit/actions/workflows/codeql.yml/badge.svg"></a>
+  <img alt="Next.js 15" src="https://img.shields.io/badge/Next.js-15-1c211f.svg">
+  <img alt="Runs locally" src="https://img.shields.io/badge/runs-100%25%20locally-2f6f62.svg">
+</p>
+
+Compares a resume (PDF, DOCX or TXT) against a job description. It returns a 0–100 match score, finds keyword gaps (showing the resume line that proves each match), flags formatting and parsing risks, screens knockout requirements, and helps you rewrite weak bullets without changing your layout.
 
 Built with Next.js 15 (App Router), TypeScript, Tailwind, shadcn-style components, Radix Tabs, Framer Motion, Recharts and react-dropzone. Claude (Anthropic API) is **optional**: without a key, the whole pipeline runs on a built-in deterministic NLP engine.
 
-## Run
+## Features
+
+- 📊 **Match score** across hard skills, experience, section structure, formatting and bullet impact, with every point explained
+- 🔎 **Keyword evidence**: each match shows its tier (exact, alias, word form, semantic, related) and the resume line that proves it
+- 🚦 **Knockout screen**: location, work authorization, clearance, certifications, years, degree and languages, each with a confidence level
+- 🧾 **ATS view**: what a basic ATS keeps from your file, with a parse rate
+- 📄 **Real-world parsing**: two-column PDFs, Word tables and text boxes, headers and footers, link targets
+- ✍️ **Safe rewrites**: word substitutions only, never invented numbers, shown as old → new with the word-count change
+- 🎯 **Auto-tailor and target-score slider** that keep your original layout (in-place .docx edits, no extra lines)
+- 📋 **Report for Claude**: one Markdown file with every finding and a ready-made prompt (optional keep-layout mode)
+- 💻 **Command line**: `npm run ats -- resume.pdf --jd jd.docx --show-extracted`
+- 🔒 **Local-first**: bound to 127.0.0.1, no telemetry, no account
+
+## Install
+
+Requires [Node.js](https://nodejs.org) 20 or newer.
+
+```bash
+git clone https://github.com/pushpankar-kiran/resumefit.git
+cd resumefit
+npm install
+npm run build
+npm start          # http://localhost:3221
+```
+
+## Usage
 
 On Windows, double-click **Start ATS Analyzer.cmd** (it opens http://localhost:3221). Press Ctrl+C or close the window to stop it; if a window ever hangs, double-click **Stop ATS Analyzer.cmd**, which stops only the analyzer's server on port 3221.
 
 ```bash
 npm install
 npm run build && npm start      # http://localhost:3221
-npm test                        # 239 tests (vitest), incl. the template lab, tests/regressions.test.ts, tests/bugfix-round2/3/4.test.ts
+npm test                        # vitest suite: parsing, scoring, security, template lab, PDF/.docx parity
 npm run ats -- resume.docx --jd jd.docx --show-extracted   # command-line analysis (see "Command line" below)
 npm run build:templates         # regenerate the template lab PDFs (needs Chrome + Microsoft Word)
 npm run calibrate               # compare scores with real outcomes / other tools (see calibration/)
@@ -153,3 +190,38 @@ src/components/    InputPanel, Overview (gauge/radar/cards), KeywordMatrix, Form
 fixtures/          test resumes (single-column, two-column + header contact, white-text, scanned PDFs; risky DOCX)
 docs/              COMPETITIVE_GAP_ANALYSIS.md
 ```
+
+## Honest limitations
+
+- **No tool can reproduce "the company's score".** Most employer ATS parse, filter and let recruiters search; this app predicts how cleanly you parse, whether you'd surface in searches, and whether you'd hit a knockout.
+- **Keyword matching is tuned for English** and for the skills in its taxonomy plus `src/lib/nlp/aliases.json`. Unusual skills need an alias entry.
+- **Scanned (image-only) PDFs** are rejected; there's no OCR.
+- **PDF layout detection is heuristic.** Two-column pages are detected from word positions; unusual layouts can still read out of order. Use `--show-extracted` (or the ATS View tab) to check the parse, and look at the parse-confidence level.
+- **PDFs can't be edited in place**; you get a change list instead of a tailored file.
+
+## Privacy
+
+Everything runs on your machine. The server listens on 127.0.0.1 only, keeps no files after a request, and sends nothing anywhere. The one exception is optional AI mode (`ATS_AI=claude` in `.env.local`), which sends the resume and job description to the Anthropic API. It's off by default.
+
+## Development
+
+```bash
+npm run dev          # hot reload on http://localhost:3221
+npm test             # vitest suite (parsing, scoring, security, PDF/.docx parity)
+npm run typecheck
+npm run build
+```
+
+Tests assert extracted facts (names, sections, roles, evidence), never score values. Tests that read your own resume files belong in `tests/local/`, which git ignores.
+
+## Contributing
+
+Contributions are welcome — bug reports, feature ideas, docs, and code. Start with [CONTRIBUTING.md](CONTRIBUTING.md), and please follow the [Code of Conduct](CODE_OF_CONDUCT.md). Found a security issue? See [SECURITY.md](SECURITY.md).
+
+## Support the project
+
+If this saved you some time, please **⭐ star the repo** — it helps other people find it. Bug reports and PRs are just as appreciated.
+
+## License
+
+[MIT](LICENSE) © Pushpankar Kiran

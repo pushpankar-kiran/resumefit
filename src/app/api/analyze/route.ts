@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { forbidden, sameOrigin } from "@/lib/security";
 import { ParseError, parseResumeFile, parseText, MAX_FILE_BYTES } from "@/lib/parsers";
 import { AnalysisError, analyze } from "@/lib/analyze";
 
@@ -10,6 +11,7 @@ function fail(code: string, message: string, status = 400) {
 }
 
 export async function POST(req: Request) {
+  if (!sameOrigin(req)) return forbidden();
   let form: FormData;
   try {
     form = await req.formData();

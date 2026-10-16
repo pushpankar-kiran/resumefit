@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { forbidden, sameOrigin, unsafePattern } from "@/lib/security";
 import { z } from "zod";
 import { MAX_FILE_BYTES } from "@/lib/parsers";
 import { tailorDocx } from "@/lib/docx-edit";
@@ -22,14 +23,24 @@ const Change = z.object({
 
 /** POST multipart: `resume` (the original .docx) + `changes` (JSON array). Returns the edited .docx. */
 export async function POST(req: Request) {
+  if (!sameOrigin(req)) return forbidden();
   const form = await req.formData().catch(() => null);
   const file = form?.get("resume");
   const raw = form?.get("changes");
   if (!(file instanceof File) || typeof raw !== "string")
     return NextResponse.json({ error: { code: "BAD_REQUEST", message: "Send the original .docx and the changes." } }, { status: 400 });
   if (file.size > MAX_FILE_BYTES) return NextResponse.json({ error: { code: "FILE_TOO_LARGE", message: "Files must be 5 MB or smaller." } }, { status: 413 });
-  const parsed = z.array(Change).max(300).safeParse(JSON.parse(raw));
+  let json: unknown;
+  try {
+    json = JSON.parse(raw);
+  } catch {
+    return NextResponse.json({ error: { code: "BAD_REQUEST", message: "Invalid changes." } }, { status: 400 });
+  }
+  const parsed = z.array(Change).max(300).safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: { code: "BAD_REQUEST", message: "Invalid changes." } }, { status: 400 });
+  // Patterns are compiled on the server: refuse ones that could backtrack catastrophically.
+  const bad = parsed.data.find((c) => c.regex && unsafePattern(c.find));
+  if (bad) return NextResponse.json({ error: { code: "BAD_REQUEST", message: `Change ${bad.id}: ${unsafePattern(bad.find)}.` } }, { status: 400 });
 
   const buf = Buffer.from(await file.arrayBuffer());
   if (buf[0] !== 0x50 || buf[1] !== 0x4b) return NextResponse.json({ error: { code: "NOT_DOCX", message: "Only .docx files can be edited in place." } }, { status: 422 });
@@ -42,7 +53,7 @@ export async function POST(req: Request) {
         "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "Content-Disposition": `attachment; filename="${name}"`,
         "X-Applied": String(applied.length),
-        "X-Not-Found": notFound.join(","),
+        "X-Not-Found": notFound.map((id) => id.replace(/[^\w-]/g, "")).join(","),
       },
     });
   } catch (e) {

@@ -1,8 +1,9 @@
 import type { PageGeometry, ParsedDocument, Typography } from "../types";
+import { MAX_DOCX_UNCOMPRESSED, uncompressedSize } from "../security";
 import { isColored } from "./pdf";
 
-// DOCX parsing: mammoth gives us body text with list structure; the raw OOXML parts tell us
-// what mammoth hides (headers/footers, text boxes, section columns, tables, images, links).
+// DOCX parsing straight from the OOXML parts (via JSZip): body text with list structure, plus
+// what plain-text extractors miss (headers/footers, text boxes, section columns, tables, images, links).
 
 export async function parseDocx(buf: Buffer, fileName: string): Promise<ParsedDocument> {
   const JSZip = (await import("jszip")).default;
@@ -14,6 +15,8 @@ export async function parseDocx(buf: Buffer, fileName: string): Promise<ParsedDo
   } catch {
     throw new Error("MALFORMED_FILE: This .docx file is corrupted or not a real Word document.");
   }
+  // A 5 MB upload must not inflate into gigabytes (zip bomb): check the directory first.
+  if (uncompressedSize(zip) > MAX_DOCX_UNCOMPRESSED) throw new Error("MALFORMED_FILE: This .docx expands to an unreasonable size and was rejected.");
   const documentXml = (await zip.file("word/document.xml")?.async("string")) ?? "";
   if (!documentXml) throw new Error("MALFORMED_FILE: word/document.xml is missing from this .docx file.");
 
@@ -168,7 +171,7 @@ function docxTypography(documentXml: string, stylesXml: string, themeXml: string
   };
 }
 
-/** Remove each text box's lines from the body text (mammoth inlines text-box content). */
+/** Remove each text box's lines from the body text (the reader inlines text-box content). */
 function stripTextBoxes(text: string, documentXml: string, listStyles: Set<string>): string {
   // Word stores a text box twice (DrawingML + VML fallback); collect unique lines from both.
   const boxLines = new Set(

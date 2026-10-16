@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { forbidden, sameOrigin } from "@/lib/security";
 import { z } from "zod";
 import { llmEnabled, MODEL, rewriteWithClaude } from "@/lib/ai/claude";
 import { heuristicRewrites } from "@/lib/nlp/suggest";
@@ -18,6 +19,7 @@ const Body = z.object({
 });
 
 export async function POST(req: Request) {
+  if (!sameOrigin(req)) return forbidden();
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: { code: "BAD_REQUEST", message: "Provide a bullet (3-600 characters)." } }, { status: 400 });
   const b = parsed.data;

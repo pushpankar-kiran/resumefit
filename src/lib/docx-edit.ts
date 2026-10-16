@@ -1,4 +1,5 @@
 import JSZip from "jszip";
+import { MAX_DOCX_UNCOMPRESSED, uncompressedSize } from "./security";
 import type { TailorChange } from "./tailor";
 
 // Applies tailoring changes to the user's original .docx in place, so the result keeps every
@@ -138,6 +139,7 @@ export interface DocxTailorResult {
 /** Apply enabled changes to a .docx, returning the edited file. */
 export async function tailorDocx(input: Buffer, changes: TailorChange[]): Promise<DocxTailorResult> {
   const zip = await JSZip.loadAsync(input);
+  if (uncompressedSize(zip) > MAX_DOCX_UNCOMPRESSED) throw new Error("This .docx expands to an unreasonable size.");
   const partNames = Object.keys(zip.files).filter((n) => /^word\/(document|header\d*|footer\d*)\.xml$/.test(n));
   const parts = new Map<string, string>();
   for (const n of partNames) parts.set(n, (await zip.file(n)!.async("string")) ?? "");

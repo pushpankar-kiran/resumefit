@@ -27,5 +27,5 @@ echo.
 start "" /b cmd /c "timeout /t 4 /nobreak >nul & start http://localhost:3221"
 rem Run Next.js directly (not through npm.cmd): Ctrl+C then stops the server itself instead of
 rem leaving it running behind a half-closed batch file, and the window closes afterwards.
-node node_modules\next\dist\bin\next start -p 3221
+node node_modules\next\dist\bin\next start -H 127.0.0.1 -p 3221
 exit

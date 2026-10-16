@@ -42,6 +42,8 @@ export async function parsePdf(buf: Uint8Array, fileName: string): Promise<Parse
   );
 
   const sizeBytes = buf.length; // pdf.js transfers (detaches) the buffer
+  // Untrusted input. The bundled pdf.js has no eval-based font path (no `new Function`), so the
+  // CVE-2024-4367 class of font-program code execution can't occur here.
   const doc = await getDocumentProxy(buf);
   const warnings: string[] = [];
   const links = new Set<string>();
