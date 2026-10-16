@@ -203,7 +203,7 @@ describe("Bug 4: contact details searched everywhere, absent vs could-not-read, 
       headerLinks: [["rIdLi", "https://www.linkedin.com/in/alexdoe"]],
       body: p("Alex Doe") + textBox(p("alex.doe@example.com | +91 98765 43210")) + filler,
     });
-    expect(r.resume.contact.linkedin).toMatch(/linkedin\.com\/in\/alexdoe/);
+    expect(r.resume.contact.linkedin).toContain("linkedin.com/in/alexdoe");
     expect(state(r, "email")).toMatchObject({ state: "hard to read", where: "table or text box" });
     expect(state(r, "phone").value).toBeTruthy();
   });

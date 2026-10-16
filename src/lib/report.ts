@@ -24,7 +24,11 @@ const MATCH_LABEL: Record<KeywordMatch["matchType"], string> = {
 };
 
 /** Escape characters that would break a Markdown table cell. */
-const cell = (s: string | number | null | undefined) => String(s ?? "—").replace(/\|/g, "\\|").replace(/\n+/g, " ");
+export const cell = (s: string | number | null | undefined) =>
+  String(s ?? "—")
+    .replace(/\\/g, "\\\\")
+    .replace(/\|/g, "\\|")
+    .replace(/\n+/g, " ");
 
 export interface ReportOptions {
   /**

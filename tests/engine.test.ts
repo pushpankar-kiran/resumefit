@@ -121,7 +121,8 @@ describe("keyword placements", () => {
       const exp = r.keywordPlacements.filter((p) => p.targetBullet);
       for (const p of exp) {
         expect(p.suggestion).toContain(p.keyword);
-        expect(p.suggestion).not.toMatch(/, supporting |\b(with|using|alongside) [A-Z]\S*\.?$/);
+        expect(p.suggestion).not.toContain(", supporting ");
+        expect(p.suggestion).not.toMatch(/\b(?:with|using|alongside) [A-Z]\S*\.?$/);
         // Only the keyword's own words are added.
         expect(p.suggestion.length - p.targetBullet!.length).toBeLessThanOrEqual(p.keyword.length + 2);
       }

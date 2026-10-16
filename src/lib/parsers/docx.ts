@@ -137,7 +137,7 @@ function docxTypography(documentXml: string, stylesXml: string, themeXml: string
   let colored = 0;
   let hidden = 0;
   for (const run of documentXml.match(/<w:r\b[\s\S]*?<\/w:r>/g) ?? []) {
-    const n = (run.match(/<w:t\b[^>]*>([^<]*)<\/w:t>/g) ?? []).map((t) => t.replace(/<[^>]+>/g, "")).join("").replace(/\s/g, "").length;
+    const n = [...run.matchAll(/<w:t\b[^>]*>([^<]*)<\/w:t>/g)].map((m) => m[1]).join("").replace(/\s/g, "").length;
     if (!n) continue;
     const rPr = run.match(/<w:rPr>[\s\S]*?<\/w:rPr>/)?.[0] ?? "";
     const color = attr(rPr, "w:color", "w:val");
@@ -328,11 +328,12 @@ export function externalLinks(relsXmls: string[], partXmls: string[] = []): stri
 }
 
 function decodeXml(s: string): string {
+  // &amp; last: "&amp;lt;" must become the text "&lt;", not "<".
   return s
-    .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#39;|&apos;/g, "'")
-    .replace(/&#(\d+);/g, (_, d) => String.fromCharCode(Number(d)));
+    .replace(/&#(\d+);/g, (_, d) => String.fromCharCode(Number(d)))
+    .replace(/&amp;/g, "&");
 }

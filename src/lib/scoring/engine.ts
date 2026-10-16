@@ -12,7 +12,7 @@ import type {
 import { PLACES_SEARCHED } from "../nlp/contact";
 import { hasMetric, metricOptional, startsWithStrongVerb, weakPhraseOf } from "../nlp/verbs";
 import { stem } from "../nlp/text";
-import { findPhone, nameProblem } from "../nlp/resume";
+import { LINKEDIN_RE, findPhone, nameProblem } from "../nlp/resume";
 import { resumeEducation, scoreEducation } from "../nlp/education";
 import type { CheckResult } from "../nlp/checks";
 import { groupFindings, type Deduction } from "./findings";
@@ -338,7 +338,7 @@ export function scoreFormatting(
 
   // Contact details
   const hf = layout.headerFooterText;
-  const contactInHF = !!hf && (/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/.test(hf) || !!findPhone(hf) || /linkedin\.com/i.test(hf));
+  const contactInHF = !!hf && (/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/.test(hf) || !!findPhone(hf) || LINKEDIN_RE.test(hf));
   if (contactInHF) {
     deduct(20, "Contact info in header/footer", "contact-header");
     issues.push({ id: "contact-header", severity: "high", issue: "Contact details detected inside the page header/footer area", recommendation: "Move your name, email, phone and LinkedIn into the main document body. Many ATS ignore headers and footers." });

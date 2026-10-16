@@ -43,6 +43,21 @@ export function unsafePattern(source: string): string | null {
   return null;
 }
 
+/**
+ * True when `link` (a URL, or a bare "github.com/user") points at `domain` or a subdomain of
+ * it. Parses the host instead of regex-matching, so "evil.com/?q=github.com" or
+ * "github.com.evil.io" never count.
+ */
+export function hostIs(link: string, domain: string): boolean {
+  try {
+    const u = new URL(/^[a-z][a-z0-9+.-]*:/i.test(link) ? link : `https://${link}`);
+    const host = u.hostname.toLowerCase();
+    return host === domain || host.endsWith(`.${domain}`);
+  } catch {
+    return false;
+  }
+}
+
 /** Decompressed-size budget for a .docx (a 5 MB upload must not inflate into gigabytes). */
 export const MAX_DOCX_UNCOMPRESSED = 60 * 1024 * 1024;
 

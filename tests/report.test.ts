@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { cell } from "@/lib/report";
 import { analyze } from "@/lib/analyze";
 import { parseText } from "@/lib/parsers";
 import { SAMPLES } from "@/lib/samples";
@@ -15,9 +16,9 @@ describe("Claude-ready report", () => {
     expect(md).toMatch(/Overall match score: \d+\/100/);
     expect(md).toMatch(/## 2\. Knockout screen/);
     for (const k of r.keywords.missingMustHave) expect(md).toContain(k);
-    for (const i of r.formattingIssues) expect(md).toContain(i.issue.replace(/\|/g, "\|"));
+    for (const i of r.formattingIssues) expect(md).toContain(cell(i.issue));
     for (const w of r.writing.issues) expect(md).toContain(w.message);
-    for (const b of r.bulletAudit) expect(md).toContain(b.text.replace(/\|/g, "\|"));
+    for (const b of r.bulletAudit) expect(md).toContain(cell(b.text));
     expect(md).toContain("## Job description");
     expect(md).toContain(SAMPLES[1].jd.split("\n")[0]);
     expect(md).toContain("Where I've Been"); // resume text included verbatim

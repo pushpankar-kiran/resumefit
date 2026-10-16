@@ -92,7 +92,7 @@ describe("1. docx parsing", () => {
 
     const r = parseResume(doc.text, doc.links);
     expect(r.contact.email).toBe("alex.doe@example.com");
-    expect(r.contact.linkedin).toMatch(/linkedin\.com\/in\/alexdoe/);
+    expect(r.contact.linkedin).toContain("linkedin.com/in/alexdoe");
   });
 });
 

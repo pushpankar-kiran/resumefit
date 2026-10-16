@@ -8,6 +8,11 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    # Major versions (e.g. Tailwind 4, Recharts 3) need a manual migration; security fixes
+    # still arrive through Dependabot security updates regardless of this rule.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:

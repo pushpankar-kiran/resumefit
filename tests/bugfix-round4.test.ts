@@ -1,7 +1,7 @@
 // Round 4: two-column PDFs. Every test asserts extracted facts (reading order, sections,
 // bullets, roles, names), never score values.
 import { execFileSync } from "node:child_process";
-import { readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -263,10 +263,11 @@ describe("Deliverable 4: PDF / .docx parity", () => {
 
 describe("Deliverable 3: --show-extracted on a two-column PDF", () => {
   it("prints reading-order text, sections, roles with dates, the name and the education rows", () => {
-    const file = path.join(os.tmpdir(), `two-col-${process.pid}.pdf`);
+    const dir = mkdtempSync(path.join(os.tmpdir(), "resumefit-"));
+    const file = path.join(dir, "two-col.pdf");
     writeFileSync(file, twoColumnResumePdf());
     const out = execFileSync(process.execPath, ["node_modules/tsx/dist/cli.mjs", "scripts/ats-cli.ts", file, "--show-extracted"], { encoding: "utf8", timeout: 120_000 });
-    rmSync(file);
+    rmSync(dir, { recursive: true, force: true });
     expect(out).toMatch(/^name:\s+ANANYA RAO/m);
     expect(out).toMatch(/SECTIONS \(in reading order\)/);
     expect(out).toMatch(/^Work Experience\s+← "PROFESSIONAL EXPERIENCE"/m);

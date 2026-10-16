@@ -1,4 +1,5 @@
 import type { DiagnosticCheck, FormattingIssue, KeywordMatch, LayoutSignals, ParsedDocument, ParsedResume, Severity } from "../types";
+import { hostIs } from "../security";
 
 // Document-level checks beyond layout: typography, page setup, file hygiene, contact
 // quality, chronology, section order and keyword stuffing. Each check yields a checklist
@@ -127,7 +128,7 @@ export function pageChecks(layout: LayoutSignals): CheckResult {
   return r;
 }
 
-const SPECIAL = /[-☀-➿\u{1F300}-\u{1FAFF}←-⇿■-◿✀-➿]/gu;
+const SPECIAL = /[\u{E000}-\u{F8FF}\u{2190}-\u{21FF}\u{25A0}-\u{25FF}\u{2600}-\u{27BF}\u{1F300}-\u{1FAFF}]/gu;
 const ALLOWED_SPECIAL = new Set(["•", "▪", "◦", "●", "–", "—"]);
 
 export function characterChecks(text: string, layout: LayoutSignals): CheckResult {
@@ -153,7 +154,7 @@ const GENERIC_NAME = /^(resume|cv|my[ _-]?resume|document\d*|untitled|new|final|
 
 export function fileChecks(doc: ParsedDocument, candidateName: string | null): CheckResult {
   const r = result();
-  if (doc.fileName.startsWith("pasted") || /sample|-tailored\.txt$/.test(doc.fileName)) {
+  if (doc.fileName.startsWith("pasted") || doc.fileName.includes("sample") || /-tailored\.txt$/.test(doc.fileName)) {
     r.add({ id: "file", label: "File name, type & size", status: "pass", detail: "Pasted text: no file to check." });
     return r;
   }
@@ -214,7 +215,7 @@ export function contactQualityChecks(resume: ParsedResume, links: string[], targ
 
   const text = resume.text;
   const all = [...links, ...(text.match(/(?:https?:\/\/)?(?:www\.)?[a-z0-9-]+\.[a-z]{2,}(?:\/[^\s|,)]*)?/gi) ?? [])];
-  const github = all.find((l) => /github\.com\/[\w-]+/i.test(l));
+  const github = all.find((l) => hostIs(l, "github.com") && /^\/[\w-]+/.test(new URL(/^https?:/i.test(l) ? l : `https://${l}`).pathname));
   // A portfolio is a known portfolio host, or any personal link sitting behind a label such as
   // "Portfolio", "Website" or "Blog" (e.g. a "Portfolio" hyperlink to a netlify.app site).
   const personal = (l: string) => /^https?:\/\//i.test(l) && !/linkedin\.com|github\.com|mailto:|tel:/i.test(l);
@@ -233,7 +234,7 @@ export function contactQualityChecks(resume: ParsedResume, links: string[], targ
   );
 
   // A link only behind anchor text ("LinkedIn") is lost when an ATS reads plain text.
-  const hiddenLinks = links.filter((l) => /linkedin\.com|github\.com/i.test(l) && !text.toLowerCase().includes(l.replace(/^https?:\/\/(www\.)?/i, "").replace(/\/$/, "").toLowerCase().slice(0, 25)));
+  const hiddenLinks = links.filter((l) => (hostIs(l, "linkedin.com") || hostIs(l, "github.com")) && !text.toLowerCase().includes(l.replace(/^https?:\/\/(www\.)?/i, "").replace(/\/$/, "").toLowerCase().slice(0, 25)));
   if (hiddenLinks.length) {
     r.add(
       { id: "link-text", label: "Links written out in full", status: "warn", detail: `${hiddenLinks.length} link(s) only behind clickable text.` },

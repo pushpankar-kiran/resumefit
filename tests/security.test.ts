@@ -5,7 +5,9 @@ import { POST as analyzePost } from "@/app/api/analyze/route";
 import { POST as tailorPost } from "@/app/api/tailor-docx/route";
 import { POST as rewritePost } from "@/app/api/rewrite/route";
 import { parseResumeFile } from "@/lib/parsers";
-import { MAX_DOCX_UNCOMPRESSED, sameOrigin, unsafePattern } from "@/lib/security";
+import { MAX_DOCX_UNCOMPRESSED, hostIs, sameOrigin, unsafePattern } from "@/lib/security";
+import { externalLinks } from "@/lib/parsers/docx";
+import { cell } from "@/lib/report";
 // @ts-expect-error: next.config.mjs is plain JS with no type declarations
 import nextConfig from "../next.config.mjs";
 import { buildDocx, p } from "./helpers/docx";
@@ -92,5 +94,24 @@ describe("security headers", () => {
     const pkg = JSON.parse((await import("node:fs")).readFileSync("package.json", "utf8"));
     expect(pkg.scripts.start).toMatch(/-H 127\.0\.0\.1/);
     expect(pkg.scripts.dev).toMatch(/-H 127\.0\.0\.1/);
+  });
+});
+
+describe("CodeQL findings", () => {
+  it("hostIs parses the host instead of pattern-matching the string", () => {
+    expect(hostIs("https://github.com/alexdoe", "github.com")).toBe(true);
+    expect(hostIs("github.com/alexdoe", "github.com")).toBe(true);
+    expect(hostIs("https://www.linkedin.com/in/alex", "linkedin.com")).toBe(true);
+    expect(hostIs("https://github.com.evil.io/x", "github.com")).toBe(false);
+    expect(hostIs("https://evil.com/?next=github.com", "github.com")).toBe(false);
+    expect(hostIs("https://notgithub.com/x", "github.com")).toBe(false);
+  });
+  it("XML entities decode once: '&amp;lt;' is the text '&lt;', not '<'", () => {
+    const rels = '<Relationships><Relationship Id="r1" TargetMode="External" Target="https://example.com/?q=a&amp;lt;b&amp;amp;c"/></Relationships>';
+    expect(externalLinks([rels])).toEqual(["https://example.com/?q=a&lt;b&amp;c"]);
+  });
+  it("report table cells escape backslashes as well as pipes", () => {
+    expect(cell("a|b")).toBe(String.raw`a\|b`);
+    expect(cell(String.raw`C:\path|x`)).toBe(String.raw`C:\\path\|x`);
   });
 });

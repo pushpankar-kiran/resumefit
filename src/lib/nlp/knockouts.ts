@@ -1,6 +1,6 @@
 import type { KeywordMatch, KnockoutCheck, KnockoutReport, ParsedDocument, ParsedResume, StructuredJD } from "../types";
 import { resumeEducation, LEVEL_LABEL } from "./education";
-import { findTerm } from "./text";
+import { escapeRegex, findTerm } from "./text";
 
 // Knockout screening: the yes/no filters employers' ATS (Workday, Greenhouse, Lever, iCIMS...)
 // apply through application-form questions before anyone ranks resumes. Failing one usually
@@ -302,9 +302,10 @@ function languageChecks(jd: string, resume: ParsedResume): KnockoutCheck[] {
     const lang = (m[2] ?? m[3]).toLowerCase();
     if (seen.has(lang)) continue;
     seen.add(lang);
-    const sentence = sentenceWith(jd, new RegExp(`\\b${lang}\\b`, "i")) ?? m[0];
+    const langRe = new RegExp(`\\b${escapeRegex(lang)}\\b`, "i");
+    const sentence = sentenceWith(jd, langRe) ?? m[0];
     const preferred = /\b(preferred|a plus|bonus|nice to have)\b/i.test(sentence);
-    const has = findTerm(resume.text, lang).length > 0 || new RegExp(`\\b${lang}\\b`, "i").test(resume.text);
+    const has = findTerm(resume.text, lang).length > 0 || langRe.test(resume.text);
     out.push({
       id: `lang-${lang}`,
       label: `Language: ${lang[0].toUpperCase()}${lang.slice(1)}`,
