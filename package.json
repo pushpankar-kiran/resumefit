@@ -8,7 +8,7 @@
     "url": "https://github.com/pushpankar-kiran/resumefit.git"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "private": true,
   "scripts": {

@@ -31,7 +31,7 @@ Built with Next.js 15 (App Router), TypeScript, Tailwind, shadcn-style component
 
 ## Install
 
-Requires [Node.js](https://nodejs.org) 20 or newer.
+Requires [Node.js](https://nodejs.org) 22 or newer (the bundled PDF engine needs `ArrayBuffer.transferToFixedLength`, added in Node 21; Node 20 is end-of-life).
 
 ```bash
 git clone https://github.com/pushpankar-kiran/resumefit.git

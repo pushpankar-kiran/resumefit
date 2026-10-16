@@ -10,6 +10,14 @@ where node >nul 2>nul || (
   exit /b 1
 )
 
+rem The PDF engine needs Node.js 22 or newer.
+for /f %%v in ('node -p "parseInt(process.versions.node)"') do set NODE_MAJOR=%%v
+if %NODE_MAJOR% LSS 22 (
+  echo Node.js %NODE_MAJOR% is too old: version 22 or newer is required. Get the LTS version from https://nodejs.org.
+  pause
+  exit /b 1
+)
+
 if not exist node_modules (
   echo First run: installing dependencies, this takes a minute...
   call npm install || (pause & exit /b 1)

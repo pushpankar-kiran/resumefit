@@ -26,6 +26,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Command line** (`npm run ats`) with `--show-extracted`, `--keep-layout`, `--report`
   and `--json`.
 - Windows launchers: `Start ATS Analyzer.cmd` and `Stop ATS Analyzer.cmd`.
+- Requires **Node.js 22 or newer** (the bundled PDF engine uses `ArrayBuffer.transferToFixedLength`; Node 20 is end-of-life).
 
 ### Security
 - The server binds to **127.0.0.1** only, and API routes refuse cross-site requests.

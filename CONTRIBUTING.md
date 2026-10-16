@@ -11,7 +11,7 @@ welcome — bug reports, feature ideas, docs, and code.
 
 ## Development setup
 
-Requires [Node.js](https://nodejs.org) 20 or newer.
+Requires [Node.js](https://nodejs.org) 22 or newer.
 
 ```bash
 git clone https://github.com/pushpankar-kiran/resumefit.git
