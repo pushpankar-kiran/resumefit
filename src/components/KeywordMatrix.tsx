@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { AnalysisResult, KeywordCategory, KeywordMatch } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { CREDIT } from "@/lib/nlp/matcher";
+import { CREDIT, isMatched } from "@/lib/nlp/matcher";
 
 const FILTERS: { id: "all" | KeywordCategory; label: string }[] = [
   { id: "all", label: "All" },
@@ -16,6 +16,7 @@ const FILTERS: { id: "all" | KeywordCategory; label: string }[] = [
   { id: "tool", label: "Tools / Technologies" },
   { id: "certification", label: "Certifications" },
   { id: "soft_skill", label: "Soft Skills" },
+  { id: "domain", label: "Domain / Industry" },
 ];
 
 const MATCH_LABEL: Record<KeywordMatch["matchType"], string> = {
@@ -31,7 +32,8 @@ function tip(m: KeywordMatch) {
   const parts = [MATCH_LABEL[m.matchType]];
   if (m.matchedAs && m.matchType !== "exact") parts.push(`found as "${m.matchedAs}"`);
   if (m.locations.length) parts.push(`in: ${m.locations.join(", ")}`);
-  if (m.evidence) parts.push(`evidence: "${m.evidence}"`);
+  parts.push(m.evidence ? `evidence: "${m.evidence}"` : "no evidence in your resume");
+  if (m.jdEvidence) parts.push(`from the JD: "${m.jdEvidence}"`);
   if (m.recencyBoosted) parts.push("1.5x recency boost");
   parts.push(`JD mentions it ${m.jdCount}x, your resume ${m.resumeCount}x`);
   return parts.join(" · ");
@@ -93,9 +95,12 @@ export function KeywordMatrix({ result }: { result: AnalysisResult }) {
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["id"]>("all");
   const [table, setTable] = useState(false);
   const details = useMemo(() => result.keywords.details.filter((m) => filter === "all" || m.category === filter), [filter, result]);
-  const matched = details.filter((m) => m.credit >= 0.8);
-  const missMust = details.filter((m) => m.credit < 0.8 && m.priority === "must");
-  const missNice = details.filter((m) => m.credit < 0.8 && m.priority === "nice");
+  // Same split as the score summary and the report: soft skills are listed on their own (not scored).
+  const scored = details.filter((m) => m.category !== "soft_skill");
+  const soft = details.filter((m) => m.category === "soft_skill");
+  const matched = scored.filter(isMatched);
+  const missMust = scored.filter((m) => !isMatched(m) && m.priority === "must");
+  const missNice = scored.filter((m) => !isMatched(m) && m.priority === "nice");
   const tips = details.filter((m) => m.acronymTip);
   // Same rule and same count as the report: matched keywords whose resume mentions (every
   // credited occurrence) fall short of the JD's.
@@ -139,6 +144,7 @@ export function KeywordMatrix({ result }: { result: AnalysisResult }) {
                   <th className="px-4 py-2 font-medium">Credit</th>
                   <th className="px-4 py-2 font-medium">Found in</th>
                   <th className="px-4 py-2 font-medium">Evidence</th>
+                  <th className="px-4 py-2 font-medium">From the JD</th>
                 </tr>
               </thead>
               <tbody>
@@ -159,7 +165,8 @@ export function KeywordMatrix({ result }: { result: AnalysisResult }) {
                       {m.locations.join(", ") || "—"}
                       {m.recencyBoosted ? " (1.5x)" : ""}
                     </td>
-                    <td className="max-w-[28rem] px-4 py-2 text-xs text-muted-foreground">{m.evidence ? <Evidence text={m.evidence} /> : "—"}</td>
+                    <td className="max-w-[28rem] px-4 py-2 text-xs text-muted-foreground">{m.evidence ? <Evidence text={m.evidence} /> : "none"}</td>
+                    <td className="max-w-[22rem] px-4 py-2 text-xs text-muted-foreground">{m.jdEvidence ? <Evidence text={m.jdEvidence} /> : "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -171,6 +178,11 @@ export function KeywordMatrix({ result }: { result: AnalysisResult }) {
           <Bucket title="Matched" desc="Found in your resume." items={matched} icon={<Check className="size-4 text-[hsl(var(--good))]" aria-hidden />} />
           <Bucket title="Missing critical (must-have)" desc="Required by the JD and weighted 2x. Close these first." items={missMust} icon={<X className="size-4 text-[hsl(var(--bad))]" aria-hidden />} />
           <Bucket title="Missing preferred (nice-to-have)" desc="Preferred or bonus skills, weighted 1x." items={missNice} icon={<AlertTriangle className="size-4 text-[hsl(var(--warn))]" aria-hidden />} />
+          {soft.length > 0 && (
+            <div className="lg:col-span-3">
+              <Bucket title="Soft skills (listed, not scored)" desc="Recruiters read these; the match score doesn't count them. Green = found." items={soft} icon={<Info className="size-4" aria-hidden />} />
+            </div>
+          )}
         </div>
       )}
 

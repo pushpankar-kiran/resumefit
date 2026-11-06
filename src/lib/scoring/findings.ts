@@ -4,7 +4,7 @@ import type { FormattingIssue, Severity } from "../types";
 // is reported once with its symptoms listed, and its score penalty is capped instead of
 // stacking five separate deductions.
 
-export type RootCause = "layout" | "contact" | "dates" | "typography" | "integrity" | "file" | "headings";
+export type RootCause = "layout" | "contact" | "dates" | "typography" | "integrity" | "file" | "headings" | "content";
 
 export const ROOT_CAUSES: Record<RootCause, { title: string; cap: number; recommendation: string }> = {
   layout: {
@@ -33,6 +33,11 @@ export const ROOT_CAUSES: Record<RootCause, { title: string; cap: number; recomm
     recommendation: "Remove hidden text and mention each skill only where you actually used it.",
   },
   file: { title: "File and length", cap: 6, recommendation: "Keep it to 1–2 pages and name the file First-Last-Resume." },
+  content: {
+    title: "Content that may be misread",
+    cap: 0, // advice only
+    recommendation: "Say where project data came from so it isn't mistaken for client work.",
+  },
   headings: {
     title: "Section headings",
     cap: 0, // section structure has its own score; grouped for readability only
@@ -47,6 +52,7 @@ export function rootCauseOf(id: string): RootCause {
   if (/^(fonts|font-size|bold|color|page-size|margins)$/.test(id)) return "typography";
   if (/^(hidden-text|stuffing)$/.test(id)) return "integrity";
   if (/^(missing-|nonstandard-|unknown-heading|section-order)/.test(id)) return "headings";
+  if (/^project-/.test(id)) return "content";
   return "file";
 }
 

@@ -279,7 +279,10 @@ describe("8. knockout confidence", () => {
     const undated = parseResume("EXPERIENCE\nProduct Manager | Acme\n• Shipped pricing");
     expect(screenKnockouts("", { ...JD_BASE, experienceYears: 5 }, undated, []).checks[0].status).toBe("unverifiable");
     const junior = parseResume("EXPERIENCE\nAnalyst | Acme | Jan 2024 - Present\n• Built dashboards");
-    const pref = screenKnockouts("", { ...JD_BASE, experienceYears: 8, experiencePreferred: true }, junior, []).checks[0];
+    // Preferred years sit under "Preferences you don't meet" (round 5, item 18), never in the hard checks.
+    const prefReport = screenKnockouts("", { ...JD_BASE, experienceYears: 8, experiencePreferred: true }, junior, []);
+    expect(prefReport.checks).toHaveLength(0);
+    const pref = prefReport.preferences![0];
     expect(pref.status).toBe("risk");
     expect(screenKnockouts("", { ...JD_BASE, experienceYears: 8 }, junior, []).checks[0].status).toBe("fail");
   });

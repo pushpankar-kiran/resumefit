@@ -9,6 +9,32 @@ import ALIAS_FILE from "./aliases.json";
 // file's "related" groups, e.g. MySQL for PostgreSQL) = 0.3 partial credit.
 export const CREDIT: Record<MatchType, number> = { exact: 1, alias: 1, "word-form": 1, semantic: 0.8, related: 0.3, none: 0 };
 
+/** One rule everywhere (score summary, tables, report, CLI): exact/alias/word-form/semantic = matched; related or none = missing. */
+export const isMatched = (m: Pick<KeywordMatch, "credit">) => m.credit >= 0.8;
+
+export interface KeywordTally {
+  matched: number;
+  missing: number;
+  total: number;
+}
+/**
+ * The counts behind every keyword summary, computed from the same list the tables render.
+ * Scored = hard skills, tools, certifications and domains; soft skills are listed but not scored.
+ */
+export function keywordTotals(matches: KeywordMatch[]): { must: KeywordTally; nice: KeywordTally; soft: KeywordTally; all: KeywordTally } {
+  const tally = (list: KeywordMatch[]): KeywordTally => {
+    const matched = list.filter(isMatched).length;
+    return { matched, missing: list.length - matched, total: list.length };
+  };
+  const scored = matches.filter((m) => m.category !== "soft_skill");
+  return {
+    must: tally(scored.filter((m) => m.priority === "must")),
+    nice: tally(scored.filter((m) => m.priority === "nice")),
+    soft: tally(matches.filter((m) => m.category === "soft_skill")),
+    all: tally(matches),
+  };
+}
+
 // Editable alias file (src/lib/nlp/aliases.json):
 //  - synonyms: two-way groups, so each member lists the others;
 //  - variants: one-way, the resume wording on the right satisfies the keyword on the left.
@@ -151,7 +177,7 @@ function distinctCount(hits: { index: number; text: string }[]): number {
   return n;
 }
 
-type Zone = "summary" | "recent role" | "older role" | "skills" | "education" | "other";
+type Zone = "summary" | "recent role" | "older role" | "skills" | "education" | "project" | "other";
 
 /** Map each line of the resume to a zone so we can apply positional (recency) weighting. */
 function zoneMap(resume: ParsedResume): { zoneOfOffset: (i: number) => Zone } {
@@ -165,6 +191,16 @@ function zoneMap(resume: ParsedResume): { zoneOfOffset: (i: number) => Zone } {
       if (resume.lines[i]) {
         lineZone[i] = z;
         count++;
+      }
+    }
+  }
+  // Projects (academic or personal): real evidence, weighted a little below work experience.
+  for (const s of resume.sections) {
+    if (s.canonical !== "Projects") continue;
+    for (let i = s.startLine + 1, n = 0; i < resume.lines.length && n < s.lines.length; i++) {
+      if (resume.lines[i]) {
+        lineZone[i] = "project";
+        n++;
       }
     }
   }
@@ -377,6 +413,7 @@ export function matchKeywords(
       term: kw.term,
       category: kw.category,
       priority: kw.priority,
+      hardRequirement: kw.hardRequirement,
       matchType,
       matchedAs,
       credit: CREDIT[matchType],
@@ -388,6 +425,14 @@ export function matchKeywords(
       locations,
       recencyBoosted: locations.includes("summary") || locations.includes("recent role"),
       evidence: hits.length ? evidenceAt(text, hits[0].index, hits[0].text.length) || null : null,
+      // Where the JD asks for it. Every keyword must come from the JD; aliases only map resume
+      // wording onto it.
+      jdEvidence: (() => {
+        if (!jdText) return null;
+        if (kw.jdAt && kw.jdAt[0] + kw.jdAt[1] <= jdText.length) return evidenceAt(jdText, kw.jdAt[0], kw.jdAt[1]) || null;
+        const h = variants.flatMap((v) => findTerm(jdText, v)).sort((a, b) => a.index - b.index)[0];
+        return h ? evidenceAt(jdText, h.index, h.text.length) || null : null;
+      })(),
     };
   });
 }

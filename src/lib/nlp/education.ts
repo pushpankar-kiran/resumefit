@@ -29,6 +29,9 @@ export const DEGREE_DICTIONARY: Record<string, number> = {
   "12th": 1, hsc: 1, "class xii": 1, intermediate: 1, ged: 1, "high school": 1, "higher secondary": 1, "10th": 1, ssc: 1, "class x": 1,
 };
 
+/** Indian postgraduate management programmes that employers treat as an MBA. */
+export const MBA_EQUIVALENT = new Set(["mba", "emba", "pgpm", "pgdm", "pgp", "pgdba", "pgpx", "pgdbm", "pgpba"]);
+
 // Short, ambiguous keys that need an academic context on the line ("MS Office", "BA" in "BAU").
 const AMBIGUOUS_DEGREE = new Set(["ms", "ma", "me", "ba", "bs", "be", "as", "aa", "ab", "md", "jd", "march", "diploma", "intermediate"]);
 
@@ -55,6 +58,8 @@ export interface EducationEntry {
   status: "completed" | "in progress";
   /** 10th / 12th / high school: a school entry, never reported as the highest degree. */
   school: boolean;
+  /** MBA, or a programme employers treat as one (PGPM, PGDM, PGP, PGDBA...). */
+  mbaEquivalent?: boolean;
 }
 
 /** The highest real degree (school entries such as 10th/12th never count), or null. */
@@ -91,7 +96,8 @@ export function resumeEducation(resume: ParsedResume): EducationEntry[] {
     // Keep a programme name given in brackets right after the degree: "MBA (PGPM)".
     const bracket = m && m.index !== undefined ? line.slice(m.index + m[0].length).match(/^\s*\(([^)]{2,12})\)/) : null;
     if (bracket && DEGREE_DICTIONARY[normalizeDegreeText(bracket[1]).trim()] === best.level) written = `${written} (${bracket[1]})`;
-    out.push({ level: best.level, label: LEVEL_LABEL[best.level], degree: written, detail: line.slice(0, 140), year, inProgress: year !== null && year > thisYear, status: year !== null && year > thisYear ? "in progress" : "completed", school: best.level === 1 });
+    const mbaEquivalent = MBA_EQUIVALENT.has(best.key) || (!!bracket && MBA_EQUIVALENT.has(normalizeDegreeText(bracket[1]).trim()));
+    out.push({ level: best.level, label: LEVEL_LABEL[best.level], degree: written, detail: line.slice(0, 140), year, inProgress: year !== null && year > thisYear, status: year !== null && year > thisYear ? "in progress" : "completed", school: best.level === 1, mbaEquivalent });
   }
   // Highest level first; among equals, the most recent.
   return out.sort((a, b) => b.level - a.level || (b.year ?? 0) - (a.year ?? 0));
@@ -124,7 +130,15 @@ export function jdEducation(jdRaw: string): EducationRequirement | null {
         .split(/,|\bor\b|\/|\band\b/)
         .map((f) => f.trim())
         .filter((f) => f && f.length < 40 && !/related|similar|equivalent|field/i.test(f));
-      const req: EducationRequirement = { level, label: LEVEL_LABEL[level], required: !preferred, equivalentExperienceOk: equivalent, fields };
+      // Keep what the JD actually names: "MBA from a premier institute (Tier 1 / Tier 2)" is an
+      // MBA with an institute qualifier, not just "a Master's degree".
+      const degree = level === 4 && /\b(mba|pgdm|pgpm|pgp|pgdba)\b/i.test(s) ? "MBA" : null;
+      const tiers = s.match(/\btier[- ]?\d(?:\s*(?:\/|or|and|,)\s*tier[- ]?\d)*/i)?.[0];
+      const qualifier = tiers
+        ? tiers.replace(/\s*(\/|,)\s*/g, "$1").replace(/tier[- ]?/gi, "Tier ")
+        : (s.match(/\b(premier|top[- ]tier|reputed|top) (?:institutes?|schools?|universit(?:y|ies)|colleges?)\b/i)?.[0] ?? null);
+      const label = degree ? `${degree}${qualifier ? ` (${qualifier})` : ""}` : LEVEL_LABEL[level];
+      const req: EducationRequirement = { level, label, required: !preferred, equivalentExperienceOk: equivalent, fields, degree, qualifier };
       // Keep the lowest *required* level; a preferred master's doesn't raise the bar.
       if (!best || (req.required && (!best.required || level < best.level)) || (!best.required && !req.required && level > best.level)) best = req;
       break;

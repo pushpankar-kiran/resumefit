@@ -2,6 +2,7 @@ import type { ParsedResume, WritingIssue, WritingIssueKind, WritingReport } from
 import { SKILLS } from "./skills";
 import { isBullet, stripBullet } from "./text";
 import { firstWord } from "./verbs";
+import CUSTOM from "./custom-words.json";
 
 // Writing-quality checks a recruiter notices: spelling, grammar, repetition, buzzwords,
 // filler and tone. Everything runs locally (Hunspell dictionary via nspell); resume text is
@@ -37,10 +38,18 @@ const EXTRA_WORDS = (
   "subject-matter end-to-end real-time multi-tenant opensource open-source codebase codebases refactored " +
   "refactor refactoring debugged prototyped productionized productized monetization monetize gamification " +
   "LinkedIn GitHub GitLab YouTube iOS macOS Gmail Wi-Fi WiFi email emails startup startups fintech healthtech " +
-  "edtech proptech insurtech teammate teammates mentee mentees standup standups"
+  "edtech proptech insurtech teammate teammates mentee mentees standup standups " +
+  // Business / consulting vocabulary
+  "benchmark benchmarks benchmarked benchmarking upskilling reskill reskilling rollout rollouts guardrail guardrails " +
+  "offboarded onboarded scalable go-live playbook playbooks shortlist shortlisted workstream workstreams " +
+  // Indian English
+  "lakh lakhs crore crores rupee rupees"
 )
   .split(/\s+/)
   .filter(Boolean);
+
+/** The user's own dictionary (src/lib/nlp/custom-words.json). */
+export const CUSTOM_WORDS: string[] = ((CUSTOM as { words?: string[] }).words ?? []).map((w) => w.toLowerCase());
 
 // Tool, product and company names a general dictionary doesn't know. Never flagged as misspellings.
 export const BRAND_ALLOWLIST = (
@@ -116,7 +125,7 @@ export async function analyzeWriting(
   const lines = resume.lines.filter(Boolean);
   const words = resume.text.match(/[A-Za-z][A-Za-z'-]*/g) ?? [];
   const protect = new Set(
-    [...protectedTerms, ...BRAND_ALLOWLIST, resume.contact.name ?? "", resume.contact.location ?? "", ...resume.roles.map((r) => r.company)]
+    [...protectedTerms, ...BRAND_ALLOWLIST, ...CUSTOM_WORDS, resume.contact.name ?? "", resume.contact.location ?? "", ...resume.roles.map((r) => r.company)]
       .flatMap((t) => t.split(/[\s,./()&|-]+/))
       .map((w) => w.toLowerCase())
       .filter(Boolean),
@@ -132,6 +141,8 @@ export async function analyzeWriting(
         // Skip proper nouns mid-sentence, acronyms, protected names and words with digits.
         if (/^[A-Z]/.test(w) && m.index! > 0 && !/[.:•]\s*$/.test(line.slice(0, m.index))) continue;
         if (protect.has(w.toLowerCase()) || w.length < 4) continue;
+        // A unit next to an amount ("₹73 lakh", "$2M", "40 bps") is not prose.
+        if (/(?:[₹$€£¥]\s*)?\d[\d.,]*\s*$/.test(line.slice(Math.max(0, m.index! - 12), m.index))) continue;
         if (speller.correct(w) || speller.correct(w.toLowerCase())) continue;
         if (w.includes("-") && w.split("-").every((p) => speller.correct(p))) continue;
         if (britishOk(w, (x) => speller.correct(x))) continue;

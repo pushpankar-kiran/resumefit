@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { AnalysisResult, CategoryScores } from "@/lib/types";
 import { bandOf, cn } from "@/lib/utils";
 import { KnockoutPanel } from "@/components/KnockoutPanel";
+import { keywordTotals } from "@/lib/nlp/matcher";
 
 type MetaKey = keyof CategoryScores | "writingQuality";
 
@@ -145,7 +146,7 @@ function RadarBreakdown({ result }: { result: AnalysisResult }) {
 }
 
 export function Overview({ result }: { result: AnalysisResult }) {
-  const k = result.keywords;
+  const totals = keywordTotals(result.keywords.details);
   const highIssues = result.formattingIssues.filter((i) => i.severity === "high").length;
   const general = result.mode === "general";
   return (
@@ -166,11 +167,12 @@ export function Overview({ result }: { result: AnalysisResult }) {
             <dl className="mt-5 grid grid-cols-3 gap-2 text-center text-xs">
               <div className="rounded-md bg-muted p-2">
                 <dt className="text-muted-foreground">{general ? "ATS parse rate" : "Keywords matched"}</dt>
-                <dd className="text-lg font-semibold tabular-nums">{general ? `${result.atsView.parseRate}%` : `${k.matched.length}/${k.details.length}`}</dd>
+                <dd className="text-lg font-semibold tabular-nums">{general ? `${result.atsView.parseRate}%` : `${totals.all.matched}/${totals.all.total}`}</dd>
               </div>
-              <div className="rounded-md bg-muted p-2">
+              {/* Same tally as the score summary and the Keyword tab: soft skills are listed there, not counted here. */}
+              <div className="rounded-md bg-muted p-2" title={general ? undefined : "Scored must-haves (skills, tools, certifications, domains). Soft skills are listed separately."}>
                 <dt className="text-muted-foreground">{general ? "Writing issues" : "Missing must-haves"}</dt>
-                <dd className="text-lg font-semibold tabular-nums">{general ? result.writing.issues.length : k.missingMustHave.length}</dd>
+                <dd className="text-lg font-semibold tabular-nums">{general ? result.writing.issues.length : totals.must.missing}</dd>
               </div>
               <div className="rounded-md bg-muted p-2">
                 <dt className="text-muted-foreground">High-risk format issues</dt>

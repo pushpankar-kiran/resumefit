@@ -86,6 +86,8 @@ Bands: 0–59 low (red), 60–74 moderate (yellow), 75–100 high (green).
 
 Each check reports pass, borderline, likely knockout, "asked on the form", or **unable to verify** (the resume has relevant content the parser couldn't read reliably, e.g. an unrecognised degree or undated roles), plus a **confidence** level (high / medium / low). Each check's confidence can't exceed the **parse confidence** of the file (low for very little text, hidden text or a scrambled multi-column read; medium when content sits in tables, text boxes or headers). Parse confidence is also low when the name fails validation, an education section has no readable degree, or a contact detail could not be read; then the verdict is always "could not verify, check extracted text", never an auto-reject or all-clear. Only a confident fail counts as a likely knockout; a low-confidence fail becomes "could not verify". Every knockout row shows its confidence. A degree still in progress (future graduation year) is a medium-confidence borderline, and a "preferred" number of years is never a knockout. A likely knockout usually means automatic rejection whatever the match score, so knockouts are shown above the score rather than folded into it.
 
+Only **hard requirements** can be knockouts: wording such as "required", "must", "mandatory" or "minimum", or items under a Requirements / Qualifications / Education heading. Desirable or preferred items (a "Preference:" section, "desirable", "a plus", "an advantage") are listed separately as **preferences you don't meet** and never change the verdict. A JD that names a degree keeps it ("MBA (Tier 1/Tier 2)"); PGPM, PGDM, PGP and PGDBA count as MBA-equivalent, and the institute tier is noted as something only recruiters can judge.
+
 ## How accurate is the score?
 
 Employers' ATS mostly don't produce a 0–100 score. They parse the file, apply knockout filters, and let recruiters search, with some using proprietary AI ranking. So no tool can reproduce "the company's score". What this one tries to predict is:
@@ -194,7 +196,8 @@ docs/              COMPETITIVE_GAP_ANALYSIS.md
 ## Honest limitations
 
 - **No tool can reproduce "the company's score".** Most employer ATS parse, filter and let recruiters search; this app predicts how cleanly you parse, whether you'd surface in searches, and whether you'd hit a knockout.
-- **Keyword matching is tuned for English** and for the skills in its taxonomy plus `src/lib/nlp/aliases.json`. Unusual skills need an alias entry.
+- **Keyword matching is tuned for English** and for the skills in its taxonomy plus `src/lib/nlp/aliases.json`. Unusual skills need an alias entry. Words the spellchecker shouldn't flag go in `src/lib/nlp/custom-words.json`.
+- **Campus placement mode** is a heuristic: a roll number plus "Batch of" on the resume, or campus-recruitment wording in the JD. It turns formatting and contact failures into warnings but leaves the score unchanged, since the score models a direct application.
 - **Scanned (image-only) PDFs** are rejected; there's no OCR.
 - **PDF layout detection is heuristic.** Two-column pages are detected from word positions; unusual layouts can still read out of order. Use `--show-extracted` (or the ATS View tab) to check the parse, and look at the parse-confidence level.
 - **PDFs can't be edited in place**; you get a change list instead of a tailored file.

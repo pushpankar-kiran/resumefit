@@ -15,6 +15,7 @@ const H = "hard_skill" as const;
 const T = "tool" as const;
 const C = "certification" as const;
 const S = "soft_skill" as const;
+const D = "domain" as const;
 
 const RAW: [string, string[], KeywordCategory, string?][] = [
   // Languages
@@ -136,7 +137,10 @@ const RAW: [string, string[], KeywordCategory, string?][] = [
   ["Deep Learning", ["neural networks"], H, "ml"],
   ["Natural Language Processing", ["nlp"], H, "ml"],
   ["Computer Vision", ["image recognition"], H, "ml"],
-  ["Large Language Models", ["llm", "llms", "generative ai", "genai", "gen ai", "prompt engineering", "rag", "retrieval augmented generation"], H, "ml"],
+  // GenAI and LLMs are related (same "ml" family) but not the same keyword: a JD that says
+  // "GenAI" must not be reported as asking for "Large Language Models".
+  ["Large Language Models", ["llm", "llms", "large language model", "prompt engineering", "rag", "retrieval augmented generation"], H, "ml"],
+  ["Generative AI", ["genai", "gen ai", "generative artificial intelligence"], H, "ml"],
   ["TensorFlow", ["keras"], T, "ml-fw"],
   ["PyTorch", ["torch"], T, "ml-fw"],
   ["scikit-learn", ["sklearn", "scikit learn"], T, "ml-fw"],
@@ -182,13 +186,32 @@ const RAW: [string, string[], KeywordCategory, string?][] = [
   ["HubSpot", [], T, "crm"],
   ["SEO", ["search engine optimization", "sem"], H, "marketing"],
   ["Digital Marketing", ["performance marketing", "paid media", "growth marketing"], H, "marketing"],
-  ["Project Management", ["program management", "project planning", "delivery management"], H, "pjm"],
-  ["Risk Management", ["risk assessment", "risk mitigation"], H, "pjm"],
-  ["Change Management", ["organizational change management", "organisational change management"], H, "pjm"],
+  ["Project Management", ["program management", "programme management", "project planning", "delivery management", "managing projects", "manage projects"], H, "pjm"],
+  ["Risk Management", ["risk assessment", "risk mitigation", "manage risks", "managing risks"], H, "pjm"],
+  ["Change Management", ["organizational change management", "organisational change management", "change adoption", "change enablement"], H, "pjm"],
+  ["Team Management", ["managing teams", "manage teams", "manage project teams", "managing project teams"], H, "pjm"],
+  ["Governance", ["program governance", "programme governance", "project governance"], H, "pjm"],
+  // Business / consulting / operations transformation.
+  ["Process Simplification", ["simplify processes", "simplifying processes"], H, "ops"],
+  ["Standardization", ["standardisation", "process standardization", "process standardisation"], H, "ops"],
+  ["Automation", ["process automation", "workflow automation", "business process automation"], H, "automation"],
+  ["Robotic Process Automation", ["rpa"], T, "automation"],
+  ["Business Transformation", ["process transformation", "digital transformation", "operational transformation"], H, "ops"],
+  ["Process Mining", [], H, "ops"],
+  ["Business Case", ["business case development"], H, "biz"],
+  ["Consulting", ["management consulting"], H, "biz"],
+  // Domains and industries: their own type, nice-to-have unless the JD states them as required.
+  ["Finance", ["finance operations", "financial operations"], D, "domain"],
+  ["HR", ["human resources"], D, "domain"],
+  ["Supply Chain", ["supply chain management", "scm"], D, "domain"],
+  ["Insurance", [], D, "domain"],
+  ["Financial Services", ["fs", "bfsi", "banking and financial services"], D, "domain"],
+  ["Operations", ["business operations", "operations management"], D, "domain"],
   ["Design Thinking", [], H, "research"],
   ["Big Data", [], H, "data-eng"],
   ["Cloud Computing", [], H, "cloud"],
-  ["Process Improvement", ["process optimization", "lean", "six sigma", "continuous improvement"], H, "ops"],
+  ["Process Improvement", ["process optimization", "lean", "continuous improvement"], H, "ops"],
+  ["Lean Six Sigma", ["six sigma", "lean sigma"], H, "lss"],
   ["Vendor Management", ["supplier management", "third-party management"], H, "ops"],
   ["API Design", ["api development", "openapi", "swagger"], H, "api"],
   ["Technical Writing", ["documentation", "technical documentation"], H, "comm"],
@@ -206,7 +229,8 @@ const RAW: [string, string[], KeywordCategory, string?][] = [
   ["CompTIA Security+", ["security+", "comptia security plus"], C, "cert-sec"],
   ["CPA", ["certified public accountant"], C, "cert-fin"],
   ["CFA", ["chartered financial analyst"], C, "cert-fin"],
-  ["Six Sigma Certification", ["six sigma green belt", "six sigma black belt", "lean six sigma"], C, "cert-ops"],
+  // The belt, not the method: "Lean Six Sigma" on its own is the skill above.
+  ["Six Sigma Certification", ["six sigma green belt", "six sigma black belt", "lean six sigma green belt", "lean six sigma black belt", "six sigma certified", "six sigma certification"], C, "cert-ops"],
   ["ITIL", ["itil v4", "itil foundation"], C, "cert-ops"],
   // Soft skills
   ["Leadership", ["led teams", "team leadership", "people leadership", "people management"], S, "lead"],
@@ -228,6 +252,20 @@ const RAW: [string, string[], KeywordCategory, string?][] = [
 
 export const SKILLS: SkillDef[] = RAW.map(([term, aliases, category, family]) => ({ term, aliases, category, family }));
 
+/**
+ * Multi-word skills read as one phrase: inside "Lean Six Sigma" the JD does not also ask for
+ * "Lean" and "Six Sigma". A hit of any of these terms (or their aliases) claims its span, and
+ * shorter keyword hits inside that span are dropped. Certifications never claim a span, so
+ * "Lean Six Sigma Green Belt" yields the skill and the (separate) certification.
+ */
+export const PHRASE_SKILLS = new Set(
+  [
+    "Lean Six Sigma", "Process Mining", "Stakeholder Management", "Business Case", "Change Management", "Robotic Process Automation",
+    "Process Simplification", "Business Transformation", "Project Management", "Risk Management", "Team Management", "Supply Chain",
+    "Financial Services", "Generative AI",
+  ].map((t) => t.toLowerCase()),
+);
+
 const byTerm = new Map(SKILLS.map((s) => [s.term.toLowerCase(), s]));
 export function findSkill(term: string): SkillDef | undefined {
   const k = term.toLowerCase();
@@ -242,7 +280,7 @@ export const CASE_SENSITIVE = new Set([
   "c", "r", "go", "ts", "js", "ml", "rest", "node", "spark", "lambda", "shell", "spring", "oracle", "ux",
   "rice", "lean", "sem", "linear", "heap", "sketch", "chef", "puppet", "rails", "vue", "react", "angular",
   "express", "torch", "flask", "swift", "dart", "excel", "looker", "hive", "rust", "ruby", "jest",
-  "mocha", "chai", "ios", "elk", "sre",
+  "mocha", "chai", "ios", "elk", "sre", "hr", "fs", "scm",
 ]);
 
 /** Single-letter languages additionally need list context ("Python, R, SQL") to count. */
@@ -260,7 +298,7 @@ const SIBLINGS = new Set([
   "opensearch", "mongoose", "kafka streams", "mlflow", "kubeflow", "sagemaker", "looker studio", "google data studio",
   "vlookup", "pivot tables", "containers", "containerization", "tracing", "logging", "monitoring", "opentelemetry",
   "tcp/ip", "dns", "http", "vpc", "ubuntu", "centos", "rhel", "ios", "android", "forecasting", "p&l", "crm",
-  "sem", "lean", "six sigma", "cassandra", "dynamo db", "spark sql", "pyspark", "load balancing", "load balancer",
+  "sem", "lean", "cassandra", "dynamo db", "spark sql", "pyspark", "load balancing", "load balancer",
   "apache http server", "slo", "slos", "sla", "on-call", "incident response", "mentored", "coaching", "rice", "moscow",
   "competitive analysis", "dcf", "valuation", "pricing", "monetization", "interaction design", "mockups", "prototyping",
   "wireframes", "usability testing", "user stories", "confluence", "sprint planning", "scrum master", "eks", "gke", "aks",

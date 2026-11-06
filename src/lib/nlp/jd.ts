@@ -1,18 +1,24 @@
 import type { JDKeyword, Priority, StructuredJD } from "../types";
-import { SKILLS, canonicalOf, siblingsOf, synonymsOf } from "./skills";
+import { PHRASE_SKILLS, SKILLS, canonicalOf, siblingsOf, synonymsOf } from "./skills";
 import { findTerm, isBullet, stripBullet } from "./text";
 import { detectLanguage } from "./language";
 import { jdEducation } from "./education";
+import { ladderLevel, levelField } from "./levels";
 
 type Block = "must" | "nice" | "resp" | "about" | "none";
 
 const MUST_HEAD = /(requirements|required|qualifications|must[- ]haves?|what you('ll)? (need|bring)|you have|you bring|minimum|basic qualifications|essential|who you are|skills|what we('re)? look(ing)? for|about you|your profile|experience|attributes|competenc|education|eligibility)/i;
 const NICE_HEAD = /(prefer|nice[- ]to[- ]haves?|bonus|plus|desired|good to have|additional|extra credit|ideally|it'?s a plus|would be great)/i;
-const RESP_HEAD = /(responsibilit|what you('ll)? do|the role|day[- ]to[- ]day|duties|about the role|you will|in this role|your impact|what you'll work on|key accountabilities|overview|job description|role summary)/i;
+const LEARN_HEAD = /(learning opportunit|what you('ll)? learn|you will learn|growth opportunit|development opportunit|career growth)/i;
+const RESP_HEAD =/(responsibilit|what you('ll)? do|the role|day[- ]to[- ]day|duties|about the role|you will|in this role|your impact|what you'll work on|key accountabilities|overview|job description|role summary)/i;
 // Company blurbs, legal text and logistics: never a source of required skills.
 const ABOUT_HEAD = /(^about\b|about us|about the company|who we are|benefits|perks|what we offer|compensation|equal opportunit|eeo|our values|why join|disclaimer|legal notice|privacy|joining location|^location|how to apply)/i;
 // "Nice to have" cues apply to the clause they sit in ("..., big data is plus").
-const NICE_CUE = /(preferred|preferably|a plus|is plus|are plus|nice to have|bonus|ideally|familiarity with|exposure to|good to have|desirable|would be great|advantageous|is an advantage)/i;
+const NICE_CUE = /(preferred|preferably|a plus|is plus|are plus|nice to have|bonus|ideally|familiarity with|exposure to|good to have|desirable|would be great|advantageous|an advantage)/i;
+const BOILERPLATE = /(covid|vaccinat|equal opportunit|equal employment|business ethics line|does not discriminate|sexual orientation|reasonable accommodation|collect money|demands? money|in exchange for (money|a job)|offer of employment|placement committee|campus recruitment)/i;
+// Wording and headings that make a requirement a hard (knockout) one.
+const HARD_CUE = /\b(required|requirement|must|mandatory|minimum|essential|need to hold)\b/i;
+const REQ_HEAD = /(requirements?|qualifications?|education|eligibility|must[- ]haves?|minimum|essential)/i;
 
 /** URLs and email addresses are never skills ("https://..." must not yield "HTTP"). */
 export function stripNoise(jd: string): string {
@@ -46,7 +52,8 @@ function inlineHeading(line: string): string | null {
 
 function classifyBlock(label: string): Block | null {
   if (ABOUT_HEAD.test(label) && !/about (the )?role|about you/i.test(label)) return "about";
-  if (NICE_HEAD.test(label)) return "nice";
+  // What the role will teach you is not a requirement: read it at nice-to-have weight.
+  if (NICE_HEAD.test(label) || LEARN_HEAD.test(label)) return "nice";
   if (RESP_HEAD.test(label)) return "resp";
   if (MUST_HEAD.test(label)) return "must";
   return null;
@@ -113,6 +120,9 @@ export function extractYears(jd: string): number | null {
 }
 
 export function extractSeniority(jd: string, title: string): string | null {
+  // An explicit "Level: CL8 - Associate Manager" field wins, then a ladder title.
+  const ladder = ladderLevel(levelField(jd) ?? "") ?? (/\bassociate manager\b/i.test(title) ? ladderLevel(title) : null);
+  if (ladder) return ladder.label;
   const s = `${title} ${jd.slice(0, 600)}`.toLowerCase();
   for (const [re, label] of [
     [/\b(principal|distinguished)\b/, "Principal"],
@@ -128,21 +138,49 @@ export function extractSeniority(jd: string, title: string): string | null {
   return null;
 }
 
+/** Section of each JD line, and whether it states a hard requirement. */
+function classifyLines(lines: string[]): { lines: string[]; lineBlock: Block[]; lineHard: boolean[] } {
+  const lineBlock: Block[] = [];
+  // A line is a hard requirement when it says so ("required", "must", "minimum"...) or sits under
+  // a Requirements / Qualifications / Education heading. Only those can become knockouts.
+  const lineHard: boolean[] = [];
+  let block: Block = "none";
+  let heading = "";
+  for (const line of lines) {
+    // Headings can be their own line ("Requirements:") or inline ("About Accenture: Accenture is...").
+    const inline = inlineHeading(line);
+    const own = blockOf(line);
+    const b = own ?? (inline ? classifyBlock(inline) : null);
+    if (b) {
+      block = b;
+      heading = own ? line : inline!;
+    } else if (inline) {
+      block = "none"; // an unrecognised inline heading ends the previous section
+      heading = inline;
+    }
+    // Legal, vaccination, anti-fraud and equal-opportunity notices are boilerplate even when
+    // they sit under no "Disclaimer" heading.
+    lineBlock.push(BOILERPLATE.test(line) ? "about" : block);
+    lineHard.push(block !== "nice" && block !== "about" && (HARD_CUE.test(line) || REQ_HEAD.test(heading)) && !NICE_CUE.test(line));
+  }
+  return { lines, lineBlock, lineHard };
+}
+
+/**
+ * The JD with About/company blurbs and legal boilerplate blanked (same length, so offsets line
+ * up). Keyword mentions are counted in this text: "Strategy and Consulting" in an About
+ * paragraph is not the employer asking twice for consulting.
+ */
+export function requirementText(jdRaw: string): string {
+  const { lines, lineBlock } = classifyLines(jdRaw.split("\n"));
+  return lines.map((l, i) => (lineBlock[i] === "about" ? " ".repeat(l.length) : l)).join("\n");
+}
+
 /** Deterministic JD structuring: section-aware keyword extraction against the taxonomy. */
 export function structureJDHeuristic(jdRaw: string): StructuredJD {
   // Same length as the raw JD (noise is blanked, not removed), so offsets still line up.
   const jd = blankOrgLists(stripNoise(jdRaw));
-  const lines = jd.split("\n");
-  const lineBlock: Block[] = [];
-  let block: Block = "none";
-  for (const line of lines) {
-    // Headings can be their own line ("Requirements:") or inline ("About Accenture: Accenture is...").
-    const inline = inlineHeading(line);
-    const b = blockOf(line) ?? (inline ? classifyBlock(inline) : null);
-    if (b) block = b;
-    else if (inline) block = "none"; // an unrecognised inline heading ends the previous section
-    lineBlock.push(block);
-  }
+  const { lines, lineBlock, lineHard } = classifyLines(jd.split("\n"));
   const offsets: number[] = [];
   let off = 0;
   for (const l of lines) {
@@ -160,25 +198,35 @@ export function structureJDHeuristic(jdRaw: string): StructuredJD {
     return lo;
   };
 
-  const found = new Map<string, { kw: JDKeyword; votesMust: number; votesNice: number; count: number }>();
-  const consider = (term: string, aliases: string[], category: JDKeyword["category"], variants: string[]) => {
-    for (const v of variants) {
+  type RawHit = { term: string; aliases: string[]; category: JDKeyword["category"]; index: number; end: number; phrase: boolean };
+  const raw: RawHit[] = [];
+  const collect = (term: string, aliases: string[], category: JDKeyword["category"], variants: string[], phrase: boolean) => {
+    for (const v of variants)
       for (const hit of findTerm(jd, v)) {
-        const li = lineAt(hit.index);
-        const b = lineBlock[li];
-        if (b === "about") continue;
-        const entry = found.get(term) ?? { kw: { term, aliases, category, priority: "must" as Priority }, votesMust: 0, votesNice: 0, count: 0 };
-        entry.count++;
-        if (b === "nice" || niceClause(lines[li], hit.index - offsets[li])) entry.votesNice++;
-        else entry.votesMust++;
-        found.set(term, entry);
+        if (lineBlock[lineAt(hit.index)] === "about") continue;
+        raw.push({ term, aliases, category, index: hit.index, end: hit.index + hit.text.length, phrase });
       }
-    }
   };
-
   for (const s of SKILLS) {
-    consider(s.term, synonymsOf(s), s.category, [s.term, ...synonymsOf(s)]);
-    for (const sib of siblingsOf(s)) consider(canonicalOf(sib).term, [], s.category, [sib]);
+    collect(s.term, synonymsOf(s), s.category, [s.term, ...synonymsOf(s)], PHRASE_SKILLS.has(s.term.toLowerCase()));
+    for (const sib of siblingsOf(s)) collect(canonicalOf(sib).term, [], s.category, [sib], false);
+  }
+  // Multi-word skills are one keyword: "Lean Six Sigma" claims its span, so "Lean" and "Six Sigma"
+  // inside it are not extra keywords.
+  const claimed = raw.filter((h) => h.phrase);
+  const hits = raw.filter((h) => h.phrase || !claimed.some((c) => c.term !== h.term && c.index <= h.index && h.end <= c.end && c.end - c.index > h.end - h.index));
+
+  const found = new Map<string, { kw: JDKeyword; votesMust: number; votesNice: number; count: number }>();
+  for (const h of hits) {
+    const li = lineAt(h.index);
+    const entry = found.get(h.term) ?? { kw: { term: h.term, aliases: h.aliases, category: h.category, priority: "must" as Priority, hardRequirement: false }, votesMust: 0, votesNice: 0, count: 0 };
+    entry.count++;
+    if (lineHard[li]) entry.kw.hardRequirement = true;
+    // The earliest place the JD asks for it (never the About/boilerplate text, skipped above).
+    if (!entry.kw.jdAt || h.index < entry.kw.jdAt[0]) entry.kw.jdAt = [h.index, h.end - h.index];
+    if (lineBlock[li] === "nice" || niceClause(lines[li], h.index - offsets[li])) entry.votesNice++;
+    else entry.votesMust++;
+    found.set(h.term, entry);
   }
 
   // Tech-looking tokens outside the taxonomy (CamelCase products, *.js, short acronyms in lists).
@@ -204,7 +252,9 @@ export function structureJDHeuristic(jdRaw: string): StructuredJD {
 
   const keywords = [...found.values()].map(({ kw, votesMust, votesNice }) => ({
     ...kw,
-    priority: (votesMust > 0 ? "must" : votesNice > 0 ? "nice" : "must") as Priority,
+    // Industries and functions ("Exposure to Finance, HR or Supply Chain") are context, not a
+    // must-have skill, unless the JD states one as required.
+    priority: (kw.category === "domain" && !kw.hardRequirement ? "nice" : votesMust > 0 ? "must" : votesNice > 0 ? "nice" : "must") as Priority,
   }));
 
   // A keyword that subsumes another (e.g. "AWS Lambda" and "AWS") stays separate on purpose:
@@ -251,6 +301,7 @@ export function dedupe(list: JDKeyword[]): JDKeyword[] {
       });
     } else {
       if (k.priority === "must") prev.priority = "must";
+      if (k.hardRequirement) prev.hardRequirement = true;
       prev.aliases = [...new Set([...prev.aliases, ...k.aliases])];
     }
   }

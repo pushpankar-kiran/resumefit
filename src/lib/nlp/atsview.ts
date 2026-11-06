@@ -86,7 +86,8 @@ export function buildAtsView(doc: ParsedDocument, smart: ParsedResume): AtsView 
   scored.push([
     {
       label: "Skills list",
-      value: skills.length ? `${skills.length} skills listed (${known} match known skill names)` : null,
+      // One item can name two skills ("SQL & PYTHON"), so the two numbers count different things.
+      value: skills.length ? `${skills.length} skills listed (${known} known skill names found in them)` : null,
       ok: skills.length >= 5,
       note: skills.length ? undefined : "No parseable skills section",
     },

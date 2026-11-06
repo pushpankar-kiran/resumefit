@@ -698,10 +698,38 @@
       "six sigma certification",
       "six sigma green belt",
       "six sigma black belt",
-      "lean six sigma",
+      "lean six sigma green belt",
+      "lean six sigma black belt",
       "itil",
       "itil v4",
       "itil foundation"
+    ],
+    "lean-six-sigma-methods": [
+      "lean six sigma",
+      "six sigma",
+      "dmaic",
+      "sipoc",
+      "pareto",
+      "5-why",
+      "five whys",
+      "control chart",
+      "ctq",
+      "kaizen",
+      "value stream mapping"
+    ],
+    "process-mining-tools": [
+      "process mining",
+      "pm4py",
+      "celonis",
+      "event log"
+    ],
+    "rpa-tools": [
+      "robotic process automation",
+      "rpa",
+      "uipath",
+      "power automate",
+      "automation anywhere",
+      "blue prism"
     ]
   }
 }

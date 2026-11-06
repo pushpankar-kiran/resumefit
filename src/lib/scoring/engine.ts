@@ -17,6 +17,8 @@ import { resumeEducation, scoreEducation } from "../nlp/education";
 import type { CheckResult } from "../nlp/checks";
 import { groupFindings, type Deduction } from "./findings";
 import { statedExperienceYears } from "../nlp/knockouts";
+import { isMatched, keywordTotals } from "../nlp/matcher";
+import { ladderLevel } from "../nlp/levels";
 
 /**
  * Dated roles vs the experience the resume states ("Experience: 75 months"). When they
@@ -58,16 +60,17 @@ export function scoreHardSkills(matches: KeywordMatch[]): { score: number; why: 
     max += w;
     got += w * m.credit;
   }
-  const must = hard.filter((m) => m.priority === "must");
-  const nice = hard.filter((m) => m.priority === "nice");
+  // Same tally as the keyword tables (keywordTotals), so the summary and the tables agree.
+  const t = keywordTotals(matches);
   const repeated = hard.filter((m) => (m.jdCount ?? 1) >= 2);
   const score = clamp((got / max) * 100);
   return {
     score,
     why: [
-      { label: "Must-have matched (2x weight)", value: `${must.filter((m) => m.credit >= 0.8).length} / ${must.length}` },
-      { label: "Nice-to-have matched (1x weight)", value: `${nice.filter((m) => m.credit >= 0.8).length} / ${nice.length}` },
-      { label: "Repeated in JD (up to 1.75x weight)", value: `${repeated.filter((m) => m.credit >= 0.8).length} / ${repeated.length} matched` },
+      { label: "Must-have matched (2x weight)", value: `${t.must.matched} / ${t.must.total}` },
+      { label: "Nice-to-have matched (1x weight)", value: `${t.nice.matched} / ${t.nice.total}` },
+      { label: "Soft skills matched (listed, not scored)", value: `${t.soft.matched} / ${t.soft.total}` },
+      { label: "Repeated in JD (up to 1.75x weight)", value: `${repeated.filter(isMatched).length} / ${repeated.length} matched` },
       { label: "Exact / alias / word-form / semantic / related", value: ["exact", "alias", "word-form", "semantic", "related"].map((t) => hard.filter((m) => m.matchType === t).length).join(" / ") },
       { label: "Weighted coverage", value: `${got.toFixed(1)} / ${max.toFixed(1)} pts` },
     ],
@@ -103,7 +106,10 @@ export function levelFromYears(y: number): number {
 }
 
 export function scoreSeniority(jd: StructuredJD, resume: ParsedResume): { score: number | null; detail: string; required: number | null; candidate: number } {
-  const required = levelOfTitle(jd.targetTitle) ?? (jd.seniority ? levelOfTitle(jd.seniority) : null) ?? (jd.experienceYears ? levelFromYears(jd.experienceYears) : null);
+  // A consulting/corporate ladder level ("CL8 - Associate Manager") is the most specific source.
+  const ladder = ladderLevel(jd.seniority ?? "");
+  const required = ladder?.level ?? levelOfTitle(jd.targetTitle) ?? (jd.seniority ? levelOfTitle(jd.seniority) : null) ?? (jd.experienceYears ? levelFromYears(jd.experienceYears) : null);
+  const requiredLabel = ladder?.label ?? (required === null ? "" : LEVEL_NAMES[required]);
   const fromTitle = levelOfTitle(resume.roles[0]?.title ?? "");
   // Never downgrade from the stated total when some roles couldn't be parsed.
   const fromYears = levelFromYears(experienceCoverage(resume).years);
@@ -112,11 +118,46 @@ export function scoreSeniority(jd: StructuredJD, resume: ParsedResume): { score:
   if (required === null) return { score: null, detail: "JD states no seniority level", required, candidate };
   const diff = candidate - required;
   const score = diff >= 0 ? (diff >= 3 ? 80 : 100) : diff === -1 ? 60 : 25;
-  const detail = `You read as ${LEVEL_NAMES[candidate]} vs ${LEVEL_NAMES[required]} role${diff >= 3 ? " (may look over-qualified)" : ""}`;
+  const detail = `You read as ${LEVEL_NAMES[candidate]} vs ${requiredLabel} role${diff >= 3 ? " (may look over-qualified)" : ""}`;
   return { score, detail, required, candidate };
 }
 
 // ---------- 2. Experience & title alignment (25) ----------
+
+const HEADLINE_WORDS =
+  /\b(engineer|developer|manager|analyst|director|lead|designer|consultant|specialist|associate|scientist|architect|officer|coordinator|administrator|head|strategist|researcher|programmer|recruiter|accountant|marketer|writer|owner|intern|professional|expert|leader|tester)\b/i;
+
+/** A headline line under the name ("Transformation Consultant | Lean Six Sigma"), if there is one. */
+export function resumeHeadline(resume: ParsedResume): string | null {
+  // Everything above the first recognised section. An all-caps name can parse as its own
+  // "heading", so its lines count as the top too.
+  const first = resume.sections.findIndex((s) => s.key !== "contact" && s.key !== "other");
+  const top = resume.sections
+    .slice(0, first < 0 ? resume.sections.length : first)
+    .flatMap((s) => (s.key === "contact" ? s.lines : [s.heading, ...s.lines]))
+    .slice(0, 8);
+  return (
+    top
+      .map((l) => l.trim())
+      .find((l) => {
+        const n = l.split(/\s+/).length;
+        return l !== resume.contact.name && n >= 2 && n <= 12 && HEADLINE_WORDS.test(l) && !/@|:|\d{3}|linkedin|https?:|www\./i.test(l);
+      }) ?? null
+  );
+}
+
+/** The summary's opening noun phrase: "Transformation professional standardising..." → "Transformation professional". */
+export function summaryLeadPhrase(summary: string): string {
+  const out: string[] = [];
+  for (const raw of summary.trim().split(/\s+/)) {
+    const w = raw.replace(/[,.;:|]+$/, "");
+    if (!w) break;
+    if (out.length && (/^(with|using|in|for|who|that|and|of|to|across|at|by|on|from)$/i.test(w) || /(ing|ed)$/i.test(w))) break;
+    out.push(w);
+    if (raw !== w || out.length >= 6) break;
+  }
+  return out.join(" ");
+}
 
 const SENIORITY = ["intern", "junior", "jr", "associate", "senior", "sr", "lead", "staff", "principal", "head", "director", "vp", "chief", "manager", "mid", "ii", "iii", "iv", "i"];
 const TITLE_SYNONYMS: Record<string, string> = {
@@ -161,14 +202,18 @@ export function scoreExperience(
     const s = titleSimilarity(jd.targetTitle, r.title) * (roleWeights[i] ?? 0.5);
     if (s > titleSim) {
       titleSim = s;
-      bestTitle = r.title;
+      bestTitle = `${i === 0 ? "most recent title" : "title"} "${r.title}"`;
     }
   });
-  // A summary headline that names the target title also counts (e.g. "Senior Product Manager with 8 years...").
-  const headline = titleSimilarity(jd.targetTitle, resume.summary.split(/[.,|]/)[0] ?? "") * 0.9;
-  if (headline > titleSim) {
-    titleSim = headline;
-    bestTitle = "(summary headline)";
+  if (!bestTitle && resume.roles[0]?.title) bestTitle = `most recent title "${resume.roles[0].title}"`;
+  // A headline under the name counts like a title. Without one, the summary's opening noun
+  // phrase ("Transformation professional") stands in, and the report says which was used.
+  const headline = resumeHeadline(resume);
+  const lead = headline ?? summaryLeadPhrase(resume.summary);
+  const headlineSim = titleSimilarity(jd.targetTitle, lead) * 0.9;
+  if (lead && headlineSim > titleSim) {
+    titleSim = headlineSim;
+    bestTitle = headline ? `headline "${headline}"` : `summary's opening phrase "${lead}" (no headline found)`;
   }
   const titleScore = jd.targetTitle ? titleSim * 100 : 70;
 
@@ -180,7 +225,8 @@ export function scoreExperience(
   const gapNote = cov.missingRoles ? ` (could not parse all roles: resume states ${cov.stated} yrs)` : "";
 
   // Positional recency: keywords evidenced in the summary or two most recent roles get 1.5x,
-  // older roles 1.0x, and a bare listing in the Skills section only 0.75x.
+  // older roles 1.0x, projects (academic or personal) 0.9x, and a bare listing in the Skills
+  // section only 0.75x.
   const hard = matches.filter((m) => m.category !== "soft_skill");
   let got = 0;
   let max = 0;
@@ -188,7 +234,7 @@ export function scoreExperience(
     const w = PRIORITY_WEIGHT[m.priority];
     max += w * 1.5;
     if (!m.credit) continue;
-    const factor = m.recencyBoosted ? 1.5 : m.locations.includes("older role") || m.locations.includes("other") ? 1.0 : 0.75;
+    const factor = m.recencyBoosted ? 1.5 : m.locations.includes("older role") || m.locations.includes("other") ? 1.0 : m.locations.includes("project") ? 0.9 : 0.75;
     got += w * m.credit * factor;
   }
   const recencyScore = max ? (got / max) * 100 : 60;
@@ -198,7 +244,7 @@ export function scoreExperience(
 
   // Components the JD doesn't specify (seniority, education) drop out and the rest re-weight.
   const parts: { label: string; w: number; s: number | null; value: string }[] = [
-    { label: "Title match", w: 30, s: titleScore, value: jd.targetTitle ? `${pct(titleScore)} vs "${bestTitle || "—"}"` : "JD title not found (neutral)" },
+    { label: "Title match", w: 30, s: titleScore, value: jd.targetTitle ? `${pct(titleScore)} vs ${bestTitle || "no title, headline or summary found"}` : "JD title not found (neutral)" },
     { label: "Years of experience", w: 25, s: yearsScore, value: (req ? `${have} yrs vs ${req}+ required → ${pct(yearsScore)}` : `${have} yrs (JD states none)`) + gapNote },
     { label: "Seniority level", w: 15, s: sen.score, value: sen.score === null ? sen.detail : `${sen.detail} → ${pct(sen.score)}` },
     { label: "Education / degree", w: 15, s: edu.score, value: edu.score === null ? edu.detail : `${edu.detail} → ${pct(edu.score)}` },
@@ -216,6 +262,9 @@ export function scoreExperience(
 }
 
 // ---------- 3. Section structure (15) ----------
+
+const COMPANY_SYSTEM = /\b(SAP|Oracle|Salesforce|Workday|ServiceNow|NetSuite|Dynamics 365|Coupa|Ariba)\b(?=[^.;]{0,25}\b(logs?|data|dataset|instance|system|records|extracts?)\b)/;
+const DATA_SOURCE = /\b(public|open[- ]source|open data|dataset from|kaggle|bpi|challenge|synthetic|sample|simulated|anonymi[sz]ed|data source|course|case study|mock)\b/i;
 
 // Contact details aren't a section: they're checked (once) under Formatting > contact details.
 const CORE: { key: SectionKey; label: string }[] = [
@@ -273,6 +322,28 @@ export function scoreStructure(resume: ParsedResume): { score: number; why: Scor
       });
     }
   }
+  // A suggestion only: no headline costs no points, but the title match then falls back to the
+  // latest job title and the summary's opening phrase.
+  if (!resumeHeadline(resume))
+    issues.push({
+      id: "missing-headline",
+      severity: "low",
+      issue: "No headline under your name",
+      recommendation: 'Add a one-line headline with your target title, e.g. "Transformation Consultant | Lean Six Sigma | Python, SQL". ATS title matching and recruiters read it first.',
+    });
+  // A project built on a company system's data ("SAP log") with no source can read as client
+  // work. Advice only: no points.
+  for (const s of resume.sections.filter((x) => x.canonical === "Projects"))
+    for (const line of s.lines) {
+      const sys = line.match(COMPANY_SYSTEM)?.[1];
+      if (sys && !DATA_SOURCE.test(line))
+        issues.push({
+          id: "project-data-source",
+          severity: "low",
+          issue: `Project names a company system ("${sys}") without saying where the data came from`,
+          recommendation: `Add the data source, e.g. "public ${sys} event log (BPI Challenge)" or "synthetic ${sys} data", so it isn't mistaken for client or employer work.`,
+        });
+    }
   const unknown = resume.sections.filter((s) => s.key === "other" && !s.standard);
   for (const s of unknown) {
     issues.push({
@@ -459,7 +530,28 @@ export function scoreFormatting(
   for (const b of grouped.breakdown)
     why.push({ label: b.title, value: b.applied < b.raw ? `−${b.applied} (capped from −${b.raw})` : `−${b.applied}` });
   if (!why.length) why.push({ label: "No parse risks found", value: "100" });
-  return { score: clamp(100 - grouped.penalty), why, checks, issues: grouped.issues };
+  return { score: clamp(100 - grouped.penalty), why, checks: reconcileChecks(checks), issues: grouped.issues };
+}
+
+// A check may not pass while a check that implies its failure has failed: tables and text boxes
+// put content side by side, so "Single-column layout" can't pass next to them. Status only; the
+// penalty is already taken once under the layout root cause.
+const IMPLIES: { failed: string; check: string; why: string }[] = [
+  { failed: "tables", check: "columns", why: "tables can place content side by side" },
+  { failed: "text-boxes", check: "columns", why: "text boxes float beside the main text" },
+];
+export function reconcileChecks(checks: DiagnosticCheck[]): DiagnosticCheck[] {
+  return checks.map((c) => {
+    if (c.status !== "pass") return c;
+    const causes = IMPLIES.filter((r) => r.check === c.id && checks.some((x) => x.id === r.failed && x.status === "fail"));
+    if (!causes.length) return c;
+    return { ...c, status: "warn", detail: `Main text flows in one column, but ${causes.map((r) => r.why).join(" and ")}, so an ATS may read them as extra columns.` };
+  });
+}
+
+/** Pairs of checks that contradict each other (one passes while a check implying its failure failed). */
+export function contradictingChecks(checks: DiagnosticCheck[]): string[] {
+  return IMPLIES.filter((r) => checks.some((x) => x.id === r.failed && x.status === "fail") && checks.some((x) => x.id === r.check && x.status === "pass")).map((r) => `${r.check} passes while ${r.failed} fails`);
 }
 
 // ---------- 5. Bullet impact (10) ----------

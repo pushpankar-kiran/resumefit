@@ -1,7 +1,7 @@
 import type { AnalysisResult, BulletImprovement, DiagnosticCheck, KeywordMatch, KeywordPlacement, ParsedDocument, StructuredJD } from "./types";
 import { nameProblem, parseResume } from "./nlp/resume";
-import { dedupe, structureJDHeuristic } from "./nlp/jd";
-import { matchKeywords } from "./nlp/matcher";
+import { dedupe, requirementText, structureJDHeuristic } from "./nlp/jd";
+import { isMatched, matchKeywords } from "./nlp/matcher";
 import { detectLanguage } from "./nlp/language";
 import { findTerm } from "./nlp/text";
 import { heuristicImprovements, heuristicPlacements } from "./nlp/suggest";
@@ -33,6 +33,7 @@ import {
 } from "./scoring/engine";
 import { groupFindings } from "./scoring/findings";
 import { contactPresence } from "./nlp/contact";
+import { CAMPUS_NOTICE, campusSignals, downgradeForCampus } from "./nlp/campus";
 import { unsafeSuggestion, wordDelta, wordSwaps } from "./nlp/swaps";
 import { LlmError, MODEL, llmEnabled, structureJDWithClaude, suggestWithClaude } from "./ai/claude";
 
@@ -109,10 +110,22 @@ export async function analyze(doc: ParsedDocument, jdText: string, opts: Analyze
       notes.push(`AI mode unavailable: ${(e as Error).message}. Used the built-in engine instead.`);
     }
   }
+  // What the JD asks for: the posting without its About blurb and legal boilerplate. Keywords
+  // must occur here, and their JD mention counts come from here.
+  const jdAsks = requirementText(jdClean);
+  // Only keywords the JD actually contains (as the term or one of its aliases). Aliases map
+  // resume wording onto JD keywords; they never add a keyword the JD didn't ask for.
+  if (mode === "match") {
+    const phantom = jd.keywords.filter((k) => ![k.term, ...k.aliases].some((v) => findTerm(jdAsks, v).length));
+    if (phantom.length) {
+      jd = { ...jd, keywords: jd.keywords.filter((k) => !phantom.includes(k)) };
+      notes.push(`Dropped ${phantom.length} keyword(s) not found in the job description text: ${phantom.map((k) => k.term).join(", ")}.`);
+    }
+  }
   if (mode === "match" && !jd.keywords.length) warnings.push("No recognizable skills or tools were found in the job description, so the hard-skills score is neutral.");
 
   // ---- Matching (+ optional model-judged semantic equivalents) ----
-  let matches: KeywordMatch[] = mode === "match" ? matchKeywords(jd.keywords, resume, {}, jdClean) : [];
+  let matches: KeywordMatch[] = mode === "match" ? matchKeywords(jd.keywords, resume, {}, jdAsks) : [];
   let aiSuggest: Awaited<ReturnType<typeof suggestWithClaude>> | null = null;
   if (useLLM && !aiDown) {
     try {
@@ -127,7 +140,7 @@ export async function analyze(doc: ParsedDocument, jdText: string, opts: Analyze
       const eq: Record<string, string> = {};
       for (const e of aiSuggest.semanticEquivalents)
         if (e.resumePhrase.length >= 3 && findTerm(resume.text, e.resumePhrase).length) eq[e.keyword] = e.resumePhrase;
-      if (Object.keys(eq).length) matches = matchKeywords(jd.keywords, resume, eq, jdClean);
+      if (Object.keys(eq).length) matches = matchKeywords(jd.keywords, resume, eq, jdAsks);
     } catch (e) {
       notes.push(`AI suggestions unavailable: ${(e as Error).message}. Used the built-in suggestion engine.`);
     }
@@ -204,7 +217,14 @@ export async function analyze(doc: ParsedDocument, jdText: string, opts: Analyze
   if (cov.missingRoles) warnings.push(`Could not parse all roles: the resume states ${cov.stated} years of experience, but the dated roles add up to ${cov.parsed}. Seniority uses the stated total; check the extracted text.`);
 
   // One list grouped by root cause (formatting and structure can both report heading problems).
-  const fmtIssues = groupFindings([...fm.issues, ...st.issues].flatMap((i) => i.items ?? [i])).issues;
+  let fmtIssues = groupFindings([...fm.issues, ...st.issues].flatMap((i) => i.items ?? [i])).issues;
+  let diagnostics = [...fm.checks, ...st.checks, rolesCheck];
+  // College-mandated templates: formatting and contact checks become warnings (scores unchanged).
+  const campus = campusSignals(resume.text, jdClean);
+  if (campus.length) {
+    ({ checks: diagnostics, issues: fmtIssues } = downgradeForCampus(diagnostics, fmtIssues));
+    warnings.unshift(`${CAMPUS_NOTICE} Signals: ${campus.join("; ")}.`);
+  }
 
   const atsView = buildAtsView(doc, resume);
   const parse = parseConfidence(doc, atsView.parseRate, {
@@ -217,7 +237,7 @@ export async function analyze(doc: ParsedDocument, jdText: string, opts: Analyze
   });
   if (parse.level === "low")
     warnings.push(`Parse confidence is low (${parse.reasons.join("; ")}). Scores for this file may reflect layout rather than content: check the extracted text.`);
-  const knockouts = mode === "match" ? screenKnockouts(jdClean, jd, resume, matches, parse) : null;
+  const knockouts = mode === "match" ? screenKnockouts(jdClean, jd, resume, matches, parse, { campus: campus.length > 0 }) : null;
   const c = writing.counts;
 
   return {
@@ -233,13 +253,14 @@ export async function analyze(doc: ParsedDocument, jdText: string, opts: Analyze
     contactPresence: presence,
     parseConfidence: parse,
     keywords: {
-      matched: matches.filter((m) => m.credit >= FULL).map((m) => m.term),
+      matched: matches.filter(isMatched).map((m) => m.term),
       missingMustHave: matches.filter((m) => m.credit < FULL && m.priority === "must").map((m) => m.term),
       missingNiceToHave: matches.filter((m) => m.credit < FULL && m.priority === "nice").map((m) => m.term),
       details: matches,
     },
     formattingIssues: fmtIssues,
-    diagnostics: [...fm.checks, ...st.checks, rolesCheck],
+    diagnostics,
+    campus: campus.length ? { signals: campus } : null,
     bulletPointImprovements: improvements,
     keywordPlacements: placements,
     bulletAudit: audit,

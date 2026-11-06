@@ -1,6 +1,6 @@
 # ATS resume report: priya-shah-resume.txt
 
-> Generated 2026-10-16 by ATS Resume Analyzer (built-in engine). Paste this whole file into Claude.
+> Generated 2026-11-06 by ATS Resume Analyzer (built-in engine). Paste this whole file into Claude.
 
 ## Instructions for the assistant
 
@@ -25,8 +25,8 @@ Reply with:
 
 - **Overall match score: 68/100** (moderate)
 - Target role: Senior Product Manager, Growth · Senior · 6+ years
-- Candidate: 10.4 years of dated experience · 3 roles · Master's degree
-- Role-count check: OK: 3 dated roles parsed (10.4 yrs); resume states 7 yrs.
+- Candidate: 10.5 years of dated experience · 3 roles · Master's degree
+- Role-count check: OK: 3 dated roles parsed (10.5 yrs); resume states 7 yrs.
 - ATS parse rate: 91% (share of searchable fields a basic ATS can read)
 - Knockout screen: **clear** (parse confidence: high)
 
@@ -39,9 +39,9 @@ Reply with:
 | Bullet Impact | 56/100 | 10% |
 | Writing Quality | 95/100 | advisory |
 
-**Hard Skills & Tools:** Must-have matched (2x weight): 12 / 17; Nice-to-have matched (1x weight): 0 / 4; Repeated in JD (up to 1.75x weight): 6 / 12 matched; Exact / alias / word-form / semantic / related: 6 / 4 / 1 / 1 / 0; Weighted coverage: 28.9 / 46.5 pts
+**Hard Skills & Tools:** Must-have matched (2x weight): 12 / 17; Nice-to-have matched (1x weight): 0 / 4; Soft skills matched (listed, not scored): 1 / 4; Repeated in JD (up to 1.75x weight): 6 / 12 matched; Exact / alias / word-form / semantic / related: 6 / 4 / 1 / 1 / 0; Weighted coverage: 28.9 / 46.5 pts
 
-**Experience Alignment:** Title match (35%): 55% vs "Senior Product Manager"; Years of experience (29%): 10.4 yrs vs 6+ required → 100%; Seniority level (18%): You read as Lead / Staff vs Senior role → 100%; Education / degree (n/a): JD states no education requirement; Recency-weighted keyword evidence (18%): 55%
+**Experience Alignment:** Title match (35%): 55% vs most recent title "Senior Product Manager"; Years of experience (29%): 10.5 yrs vs 6+ required → 100%; Seniority level (18%): You read as Lead / Staff vs Senior role → 100%; Education / degree (n/a): JD states no education requirement; Recency-weighted keyword evidence (18%): 55%
 
 **Section Structure:** Professional Summary: "About Me" — non-standard (half credit); Work Experience: "Where I've Been" — non-standard (half credit); Education: "Education" ✓; Skills: "What I Know" — non-standard (half credit)
 
@@ -53,55 +53,68 @@ Reply with:
 
 ## 2. Knockout screen (yes/no filters that cause automatic rejection)
 
-No knockout risks found in the requirements we could check.
+No knockout risks found in the requirements we could check. 1 preference you don't meet is listed separately (never an automatic rejection).
+
+### Hard knockouts (stated requirements)
 
 | Check | Status | Confidence | Job requires | Resume shows | Advice |
 |---|---|---|---|---|---|
-| Minimum years of experience | Pass | medium | 6+ years | 10.4 years (from your dated roles) | Meets the stated number. |
+| Minimum years of experience | Pass | medium | 6+ years | 10.5 years (from your dated roles) | Meets the stated number. |
+
+### Preferences you don't meet (desirable, never an automatic rejection)
+
+| Preference | Job prefers | Resume shows | Advice |
+|---|---|---|---|
+| Certification: Certified Scrum Product Owner | Certified Scrum Product Owner (CSPO) | Not found | Preferred, not required. If you hold Certified Scrum Product Owner, list it under Certifications; otherwise lead with the related experience you have. |
 
 ## 3. Keyword gaps
 
 Must-have keywords count 2x, nice-to-have 1x, and keywords the job description repeats count up to 1.75x more.
 
-### Missing must-have keywords (8)
+### Missing must-have keywords (5)
 
-| Keyword | Type | JD mentions | Resume mentions | Status |
-|---|---|---|---|---|
-| Looker | tool | 1 | 0 | not found |
-| Mixpanel | tool | 2 | 0 | not found |
-| Amplitude | tool | 2 | 0 | not found |
-| OKRs | hard skill | 3 | 0 | not found |
-| Monetization | hard skill | 2 | 0 | not found |
-| Communication | soft skill | 1 | 0 | not found |
-| Time Management | soft skill | 1 | 0 | not found |
-| Strategic Thinking | soft skill | 1 | 0 | not found |
+| Keyword | Type | Match tier | Credit | JD / resume mentions | Evidence from the resume | From the JD |
+|---|---|---|---|---|---|---|
+| Looker | tool | not found | 0% | 1 / 0 | none | Strong SQL skills and comfort with product analytics (Amplitude, Mixpanel, [Looker]) |
+| Mixpanel | tool | not found | 0% | 2 / 0 | none | Use data analysis in SQL and product analytics tools like Amplitude or [Mixpanel] to prioritize work |
+| Amplitude | tool | not found | 0% | 2 / 0 | none | Use data analysis in SQL and product analytics tools like [Amplitude] or Mixpanel to prioritize work |
+| OKRs | hard skill | not found | 0% | 3 / 0 | none | Own the growth product roadmap and define [success metrics] (OKRs/KPIs) |
+| Monetization | hard skill | not found | 0% | 2 / 0 | none | …e are seeking a Senior Product Manager to lead our Growth team and drive acquisition, activation and [monetization] for our B2B SaaS platform. |
 
 ### Missing nice-to-have keywords (4)
 
-| Keyword | Type | JD mentions | Resume mentions | Status |
-|---|---|---|---|---|
-| Product-Led Growth | hard skill | 2 | 0 | not found |
-| Salesforce | tool | 1 | 0 | not found |
-| HubSpot | tool | 1 | 0 | not found |
-| Certified Scrum Product Owner | certification | 2 | 0 | not found |
+| Keyword | Type | Match tier | Credit | JD / resume mentions | Evidence from the resume | From the JD |
+|---|---|---|---|---|---|---|
+| Product-Led Growth | hard skill, nice-to-have | not found | 0% | 2 / 0 | none | Experience with [PLG] (product-led growth) motions |
+| Salesforce | tool, nice-to-have | not found | 0% | 1 / 0 | none | Familiarity with [Salesforce] and HubSpot |
+| HubSpot | tool, nice-to-have | not found | 0% | 1 / 0 | none | Familiarity with Salesforce and [HubSpot] |
+| Certified Scrum Product Owner | certification, nice-to-have | not found | 0% | 2 / 0 | none | [Certified Scrum Product Owner] (CSPO) |
 
-### Matched keywords (13)
+### Matched keywords (12)
 
-| Keyword | Match tier | Credit | Evidence from the resume |
-|---|---|---|---|
-| SQL | exact | 100% | Analyzed funnel data in [SQL] and Excel to find drop-off points. |
-| A/B Testing | exact | 100% | Roadmapping, Jira, Figma, SQL, [A/B Testing], Stakeholder Management, Agile |
-| Data Analysis | reworded / near-spelling | 80% | [Analyzed funnel data] in SQL and Excel to find drop-off points. |
-| Product Management | via acronym/alias | 100% | [Product manager] with 7 years of experience shipping B2B SaaS products. I love turning customer problems into roadmaps that move metrics. |
-| Product Roadmap | via acronym/alias | 100% | [Roadmapping], Jira, Figma, SQL, A/B Testing, Stakeholder Management, Agile |
-| User Research | via acronym/alias | 100% | Led discovery with 40+ [customer interviews] to define a self-serve onboarding flow that lifted activation by 22%. |
-| Requirements Gathering | via acronym/alias | 100% | Responsible for writing [PRDs] and user stories for the engineering team. |
-| Agile | exact | 100% | Roadmapping, Jira, Figma, SQL, A/B Testing, Stakeholder Management, [Agile] |
-| Scrum | word form (e.g. managed vs manage) | 100% | Supported the PM team on backlog grooming and [sprint] planning. |
-| Pricing | exact | 100% | Partnered with design and engineering to ship usage-based [pricing] in two quarters. |
-| SaaS | exact | 100% | Product manager with 7 years of experience shipping B2B [SaaS] products. I love turning customer problems into roadmaps that move metrics. |
-| B2B | exact | 100% | Product manager with 7 years of experience shipping [B2B] SaaS products. I love turning customer problems into roadmaps that move metrics. |
-| Stakeholder Management | exact | 100% | Roadmapping, Jira, Figma, SQL, A/B Testing, [Stakeholder Management], Agile |
+| Keyword | Type | Match tier | Credit | JD / resume mentions | Evidence from the resume | From the JD |
+|---|---|---|---|---|---|---|
+| SQL | hard skill | exact | 100% | 2 / 2 | Analyzed funnel data in [SQL] and Excel to find drop-off points. | Use data analysis in [SQL] and product analytics tools like Amplitude or Mixpanel to prioritize work |
+| A/B Testing | hard skill | exact | 100% | 4 / 2 | Roadmapping, Jira, Figma, SQL, [A/B Testing], Stakeholder Management, Agile | Run a high-velocity [experimentation] program (A/B testing) across the funnel |
+| Data Analysis | hard skill | reworded / near-spelling ("Analyzed funnel data") | 80% | 3 / 1 | [Analyzed funnel data] in SQL and Excel to find drop-off points. | Use [data analysis] in SQL and product analytics tools like Amplitude or Mixpanel to prioritize work |
+| Product Management | hard skill | via acronym/alias ("Product manager") | 100% | 4 / 4 | [Product manager] with 7 years of experience shipping B2B SaaS products. I love turning customer problems into roadmaps that move metrics. | Job Title: Senior [Product Manager], Growth |
+| Product Roadmap | hard skill | via acronym/alias ("Roadmapping") | 100% | 1 / 3 | [Roadmapping], Jira, Figma, SQL, A/B Testing, Stakeholder Management, Agile | Own the growth [product roadmap] and define success metrics (OKRs/KPIs) |
+| User Research | hard skill | via acronym/alias ("customer interviews") | 100% | 2 / 1 | Led discovery with 40+ [customer interviews] to define a self-serve onboarding flow that lifted activation by 22%. | Conduct [user research] and customer interviews to uncover friction |
+| Requirements Gathering | hard skill | via acronym/alias ("PRDs") | 100% | 1 / 2 | Responsible for writing [PRDs] and user stories for the engineering team. | Write clear [PRDs] and partner with engineering, design and marketing |
+| Agile | hard skill | exact | 100% | 1 / 1 | Roadmapping, Jira, Figma, SQL, A/B Testing, Stakeholder Management, [Agile] | Experience working in [Agile]/Scrum teams |
+| Scrum | hard skill | word form (e.g. managed vs manage) ("sprint") | 100% | 2 / 1 | Supported the PM team on backlog grooming and [sprint] planning. | Experience working in Agile/[Scrum] teams |
+| Pricing | hard skill | exact | 100% | 1 / 1 | Partnered with design and engineering to ship usage-based [pricing] in two quarters. | Experience with [pricing] and packaging |
+| SaaS | hard skill | exact | 100% | 1 / 1 | Product manager with 7 years of experience shipping B2B [SaaS] products. I love turning customer problems into roadmaps that move metrics. | …e are seeking a Senior Product Manager to lead our Growth team and drive acquisition, activation and monetization for our [B2B SaaS] platform. |
+| B2B | hard skill | exact | 100% | 1 / 1 | Product manager with 7 years of experience shipping [B2B] SaaS products. I love turning customer problems into roadmaps that move metrics. | …e are seeking a Senior Product Manager to lead our Growth team and drive acquisition, activation and monetization for our [B2B] SaaS platform. |
+
+### Soft skills (1 of 4 found; listed, not scored)
+
+| Keyword | Type | Match tier | Credit | JD / resume mentions | Evidence from the resume | From the JD |
+|---|---|---|---|---|---|---|
+| Communication | soft skill | not found | 0% | 1 / 0 | none | Excellent stakeholder management and [communication] skills |
+| Stakeholder Management | soft skill | exact | 100% | 1 / 1 | Roadmapping, Jira, Figma, SQL, A/B Testing, [Stakeholder Management], Agile | Excellent [stakeholder management] and communication skills |
+| Time Management | soft skill | not found | 0% | 1 / 0 | none | Use data analysis in SQL and product analytics tools like Amplitude or Mixpanel to [prioritize] work |
+| Strategic Thinking | soft skill | not found | 0% | 1 / 0 | none | Communicate [strategy] to executive stakeholders |
 
 ### Emphasized in the JD but light on the resume
 
@@ -137,7 +150,7 @@ Grouped by root cause: each row is one underlying problem, with its symptoms lis
 |---|---|---|
 | MEDIUM | Dates an ATS can't use reliably (2 findings): Mixed date formats: MM/YYYY, YYYY, Month YYYY; Dates an ATS may not parse: Summer 2018 | Give every role a date range in one format, e.g. "Mar 2020 – Present", newest role first. |
 | MEDIUM | File and length (2 findings): Only 179 words; Uploaded as plain text | Keep it to 1–2 pages and name the file First-Last-Resume. |
-| MEDIUM | Section headings (3 findings): Non-standard heading "About Me" used for Professional Summary; Non-standard heading "Where I've Been" used for Work Experience; Non-standard heading "What I Know" used for Skills | Use conventional headings: Professional Summary, Work Experience, Education, Skills. |
+| MEDIUM | Section headings (4 findings): Non-standard heading "About Me" used for Professional Summary; Non-standard heading "Where I've Been" used for Work Experience; Non-standard heading "What I Know" used for Skills; No headline under your name | Use conventional headings: Professional Summary, Work Experience, Education, Skills. |
 | LOW | LinkedIn URL absent (searched body, tables, text boxes, header, footer and hyperlink targets) | Add your LinkedIn URL as plain text near the top of the resume. |
 
 Checks needing attention: LinkedIn URL (warn: Absent: not in the body, tables, text boxes, header, footer and hyperlink targets.); Consistent, parseable dates (warn: 3 dated role(s); formats: MM/YYYY, YYYY, Month YYYY; unparseable: Summer 2018.); Resume length (word count) (warn: 179 words, 1 page.); ATS-friendly file type (warn: TXT: loses all formatting; use only where a portal asks for plain text.); Professional Summary section (warn: Found as "About Me", which many ATS parsers won't map.); Work Experience section (warn: Found as "Where I've Been", which many ATS parsers won't map.); Skills section (warn: Found as "What I Know", which many ATS parsers won't map.)
@@ -153,9 +166,9 @@ Checks passed (20): Single-column layout, No tables, No text boxes, No images or
 - ✓ Location: San Francisco, CA
 - ✗ Sections recognized: 4 of 4 (+ contact) (Some sections are missing or use headings an ATS may not map)
 - ✓ Job titles, employers & dates: 3 role(s) parsed
-- ✓ Skills list: 7 skills listed (7 match known skill names)
+- ✓ Skills list: 7 skills listed (7 known skill names found in them)
 - ✓ Education: Master's degree (MBA)
-- ✓ Total experience: 10.4 years
+- ✓ Total experience: 10.5 years
 - Note: Plain text input: this view matches what you pasted.
 
 ## 5. Writing quality (95/100, tone: mixed, 179 words)
@@ -259,3 +272,7 @@ B.A. Economics, UCLA
 What I Know
 Roadmapping, Jira, Figma, SQL, A/B Testing, Stakeholder Management, Agile
 ```
+
+---
+
+Self-check: ✓ totals reconcile (25 keywords = 17 must-have + 4 nice-to-have + 4 soft skills; 13 matched + 12 missing); ✓ no keyword outside the JD (every keyword has a JD line); ✓ no contradicting checks (checks agree)

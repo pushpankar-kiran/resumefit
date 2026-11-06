@@ -19,7 +19,7 @@ const CONFIDENCE = { high: "High confidence", medium: "Medium confidence", low: 
 
 /** Yes/no screening filters, shown above the score because one failure overrides any match rate. */
 export function KnockoutPanel({ report }: { report: KnockoutReport }) {
-  const [open, setOpen] = useState(report.status !== "clear");
+  const [open, setOpen] = useState(report.status !== "clear" || (report.preferences?.length ?? 0) > 0);
   const tone = report.status === "likely-reject" ? "bad" : report.status === "review" || report.status === "unverified" ? "warn" : "good";
   const Icon = report.status === "clear" ? ShieldCheck : ShieldAlert;
   return (
@@ -41,6 +41,7 @@ export function KnockoutPanel({ report }: { report: KnockoutReport }) {
       </CardHeader>
       {open && report.checks.length > 0 && (
         <CardContent>
+          <p className="mb-1 text-sm font-medium">Hard knockouts (stated requirements)</p>
           <ul className="divide-y">
             {report.checks.map((c) => {
               const s = STATUS[c.status];
@@ -70,6 +71,33 @@ export function KnockoutPanel({ report }: { report: KnockoutReport }) {
                 </li>
               );
             })}
+          </ul>
+        </CardContent>
+      )}
+      {open && (report.preferences?.length ?? 0) > 0 && (
+        <CardContent className="pt-0">
+          <p className="mb-1 text-sm font-medium">Preferences you don&apos;t meet</p>
+          <p className="mb-2 text-xs text-muted-foreground">Desirable or preferred items. They are never an automatic rejection and don&apos;t change the verdict above.</p>
+          <ul className="divide-y">
+            {report.preferences!.map((c) => (
+              <li key={c.id} className="grid gap-1 py-2 sm:grid-cols-[1.2fr_2fr]">
+                <p className="flex items-start gap-2 text-sm font-medium">
+                  <CircleHelp className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+                  {c.label}
+                </p>
+                <div className="text-sm">
+                  <p>
+                    <span className="text-muted-foreground">JD prefers: </span>
+                    {c.requirement}
+                  </p>
+                  <p>
+                    <span className="text-muted-foreground">You: </span>
+                    {c.candidate}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">{c.advice}</p>
+                </div>
+              </li>
+            ))}
           </ul>
         </CardContent>
       )}

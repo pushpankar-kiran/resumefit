@@ -17,6 +17,7 @@ import path from "node:path";
 import { analyze } from "../src/lib/analyze";
 import { highestDegree } from "../src/lib/nlp/education";
 import { KNOCKOUT_VERDICT } from "../src/lib/nlp/knockouts";
+import { selfCheck } from "../src/lib/selfcheck";
 import { parseResumeFile } from "../src/lib/parsers";
 import { parseResume } from "../src/lib/nlp/resume";
 import { skillItems } from "../src/lib/nlp/atsview";
@@ -76,14 +77,20 @@ async function main() {
     if (r.knockouts) {
       console.log(`  knockout screen: ${KNOCKOUT_VERDICT[r.knockouts.status]} (parse confidence ${r.knockouts.parseConfidence ?? "—"})`);
       for (const k of r.knockouts.checks) console.log(`    - ${k.label}: ${k.status}, ${k.confidence} confidence. ${k.candidate}`);
+      if (r.knockouts.preferences?.length) {
+        console.log(`  preferences you don't meet (never an auto-reject):`);
+        for (const k of r.knockouts.preferences) console.log(`    - ${k.label}: ${k.candidate} (JD: ${k.requirement})`);
+      }
     }
     if (r.mode === "match") {
       const missing = r.keywords.details.filter((k) => k.credit < 0.8);
       console.log(`  keywords: ${r.keywords.matched.length} matched, ${missing.length} missing or partial`);
-      for (const k of r.keywords.details) console.log(`    - [${k.matchType}] ${k.term} (${k.priority})${k.evidence ? `: "${k.evidence}"` : ""}`);
+      for (const k of r.keywords.details)
+        console.log(`    - [${k.matchType === "none" ? "not found" : k.matchType}] ${k.term} (${k.priority}${k.category === "soft_skill" ? ", soft skill: not scored" : ""}): ${k.evidence ? `"${k.evidence}"` : "no evidence"} · JD: ${k.jdEvidence ? `"${k.jdEvidence}"` : "—"}`);
     }
     console.log(`  findings (grouped by root cause):`);
     for (const i of r.formattingIssues) console.log(`    - [${i.severity}] ${i.issue}${i.items && i.items.length > 1 ? `: ${i.items.map((x) => x.issue).join("; ")}` : ""}`);
+    console.log(`  ${selfCheck(r).line}`);
   }
 
   if (flag("--show-extracted")) {

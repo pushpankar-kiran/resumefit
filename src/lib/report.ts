@@ -1,4 +1,6 @@
 import { KNOCKOUT_VERDICT } from "./nlp/knockouts";
+import { isMatched, keywordTotals } from "./nlp/matcher";
+import { selfCheck } from "./selfcheck";
 import type { AnalysisResult, CategoryScores, KeywordMatch } from "./types";
 
 // Builds a single Markdown report meant to be pasted into Claude (or any assistant) to revise
@@ -126,27 +128,47 @@ export function buildClaudeReport(r: AnalysisResult, resumeText?: string, opts: 
   if (r.warnings.length) add(`**Warnings:**`, ...r.warnings.map((w) => `- ${w}`), ``);
 
   // ---- Knockouts ----
-  if (r.knockouts && r.knockouts.checks.length) {
+  const prefs = r.knockouts?.preferences ?? [];
+  if (r.knockouts && (r.knockouts.checks.length || prefs.length)) {
     add(`## 2. Knockout screen (yes/no filters that cause automatic rejection)`, ``, r.knockouts.summary, ``);
-    add(`| Check | Status | Confidence | Job requires | Resume shows | Advice |`, `|---|---|---|---|---|---|`);
-    const label = { pass: "Pass", risk: "Borderline", fail: "LIKELY KNOCKOUT", unknown: "Asked on form", unverifiable: "Unable to verify" } as const;
-    const order = ["fail", "unverifiable", "risk", "unknown", "pass"];
-    for (const c of [...r.knockouts.checks].sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status)))
-      add(`| ${cell(c.label)} | ${c.status === "fail" && c.confidence === "low" ? "Possible knockout" : label[c.status]} | ${c.confidence} | ${cell(c.requirement)} | ${cell(c.candidate)} | ${cell(c.advice)} |`);
+    add(`### Hard knockouts (stated requirements)`, ``);
+    if (r.knockouts.checks.length) {
+      add(`| Check | Status | Confidence | Job requires | Resume shows | Advice |`, `|---|---|---|---|---|---|`);
+      const label = { pass: "Pass", risk: "Borderline", fail: "LIKELY KNOCKOUT", unknown: "Asked on form", unverifiable: "Unable to verify" } as const;
+      const order = ["fail", "unverifiable", "risk", "unknown", "pass"];
+      for (const c of [...r.knockouts.checks].sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status)))
+        add(`| ${cell(c.label)} | ${c.status === "fail" && c.confidence === "low" ? "Possible knockout" : label[c.status]} | ${c.confidence} | ${cell(c.requirement)} | ${cell(c.candidate)} | ${cell(c.advice)} |`);
+    } else add(`None stated in the job description.`);
+    add(``);
+    add(`### Preferences you don't meet (desirable, never an automatic rejection)`, ``);
+    if (prefs.length) {
+      add(`| Preference | Job prefers | Resume shows | Advice |`, `|---|---|---|---|`);
+      for (const c of prefs) add(`| ${cell(c.label)} | ${cell(c.requirement)} | ${cell(c.candidate)} | ${cell(c.advice)} |`);
+    } else add(`None.`);
     add(``);
   }
 
   // ---- Keywords ----
   if (r.mode === "match") {
     const d = r.keywords.details;
-    const missMust = d.filter((m) => m.credit < 0.8 && m.priority === "must");
-    const missNice = d.filter((m) => m.credit < 0.8 && m.priority === "nice");
-    const matched = d.filter((m) => m.credit >= 0.8);
+    // The same split as the score summary (keywordTotals): scored keywords by priority, soft
+    // skills listed separately because they are not scored.
+    const scored = d.filter((m) => m.category !== "soft_skill");
+    const soft = d.filter((m) => m.category === "soft_skill");
+    const missMust = scored.filter((m) => !isMatched(m) && m.priority === "must");
+    const missNice = scored.filter((m) => !isMatched(m) && m.priority === "nice");
+    const matched = scored.filter(isMatched);
     add(`## 3. Keyword gaps`, ``);
     add(`Must-have keywords count 2x, nice-to-have 1x, and keywords the job description repeats count up to 1.75x more.`, ``);
+    // Every keyword, in every table, shows its match tier, the resume line that proves it (or
+    // "none" when not found) and the JD line it was taken from, so false matches and misses
+    // are easy to audit.
     const table = (rows: KeywordMatch[]) => {
-      add(`| Keyword | Type | JD mentions | Resume mentions | Status |`, `|---|---|---|---|---|`);
-      for (const m of rows) add(`| ${cell(m.term)} | ${m.category.replace("_", " ")} | ${m.jdCount} | ${m.resumeCount} | ${MATCH_LABEL[m.matchType]}${m.matchedAs && m.matchType !== "exact" ? ` ("${cell(m.matchedAs)}")` : ""}${m.matchType === "related" && m.evidence ? `: ${cell(m.evidence)}` : ""} |`);
+      add(`| Keyword | Type | Match tier | Credit | JD / resume mentions | Evidence from the resume | From the JD |`, `|---|---|---|---|---|---|---|`);
+      for (const m of rows)
+        add(
+          `| ${cell(m.term)} | ${m.category.replace("_", " ")}${m.priority === "nice" ? ", nice-to-have" : ""} | ${MATCH_LABEL[m.matchType]}${m.matchedAs && m.matchType !== "exact" ? ` ("${cell(m.matchedAs)}")` : ""} | ${Math.round(m.credit * 100)}% | ${m.jdCount} / ${m.resumeCount} | ${m.evidence ? cell(m.evidence) : "none"} | ${cell(m.jdEvidence)} |`,
+        );
       add(``);
     };
     add(`### Missing must-have keywords (${missMust.length})`, ``);
@@ -156,12 +178,13 @@ export function buildClaudeReport(r: AnalysisResult, resumeText?: string, opts: 
     if (missNice.length) table(missNice);
     else add(`None.`, ``);
     add(`### Matched keywords (${matched.length})`, ``);
-    if (matched.length) {
-      add(`| Keyword | Match tier | Credit | Evidence from the resume |`, `|---|---|---|---|`);
-      for (const m of matched) add(`| ${cell(m.term)} | ${MATCH_LABEL[m.matchType]} | ${Math.round(m.credit * 100)}% | ${cell(m.evidence)} |`);
-      add(``);
-    } else add(`None.`, ``);
-    const under = d.filter((m) => m.credit >= 0.8 && m.jdCount >= 2 && m.resumeCount < m.jdCount);
+    if (matched.length) table(matched);
+    else add(`None.`, ``);
+    if (soft.length) {
+      add(`### Soft skills (${keywordTotals(d).soft.matched} of ${soft.length} found; listed, not scored)`, ``);
+      table(soft);
+    }
+    const under = d.filter((m) => isMatched(m) && m.jdCount >= 2 && m.resumeCount < m.jdCount);
     if (under.length) add(`### Emphasized in the JD but light on the resume`, ``, ...under.map((m) => `- ${m.term}: JD ${m.jdCount}×, resume ${m.resumeCount}×. Mention it where it was actually used.`), ``);
     const tips = d.filter((m) => m.acronymTip);
     if (tips.length) add(`### Acronym + full term`, ``, ...tips.map((m) => `- ${m.term}: ${m.acronymTip}`), ``);
@@ -231,6 +254,7 @@ export function buildClaudeReport(r: AnalysisResult, resumeText?: string, opts: 
   // ---- Source texts ----
   if (r.mode === "match" && r.jdText) add(`## Job description`, ``, "```text", r.jdText.trim(), "```", ``);
   add(`## ${resumeText && resumeText !== r.resume.text ? "Resume (current edited version)" : "Resume (as parsed from the file)"}`, ``, "```text", (resumeText ?? r.resume.text).trim(), "```", ``);
+  add(`---`, ``, selfCheck(r).line, ``);
   return out.join("\n");
 }
 

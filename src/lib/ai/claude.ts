@@ -92,7 +92,7 @@ const JDSchema = z.object({
     z.object({
       term: z.string(),
       aliases: z.array(z.string()),
-      category: z.enum(["hard_skill", "tool", "certification", "soft_skill"]),
+      category: z.enum(["hard_skill", "tool", "certification", "soft_skill", "domain"]),
       priority: z.enum(["must", "nice"]),
     }),
   ),

@@ -3,7 +3,8 @@
 // formattingIssues and bulletPointImprovements are always present with those names.
 
 export type Severity = "high" | "medium" | "low";
-export type KeywordCategory = "hard_skill" | "tool" | "certification" | "soft_skill";
+/** domain = a function or industry the role works in (Finance, HR, Supply Chain, Insurance...). */
+export type KeywordCategory = "hard_skill" | "tool" | "certification" | "soft_skill" | "domain";
 export type Priority = "must" | "nice";
 export type MatchType = "exact" | "alias" | "word-form" | "semantic" | "related" | "none";
 export type SectionKey = "contact" | "summary" | "experience" | "education" | "skills";
@@ -139,15 +140,24 @@ export interface JDKeyword {
   aliases: string[];
   category: KeywordCategory;
   priority: Priority;
+  /** Stated as required ("must", "minimum"...) or under a Requirements/Qualifications/Education heading. Only these can be knockouts. */
+  hardRequirement?: boolean;
+  /** Where in the JD text it was extracted from: [offset, length]. */
+  jdAt?: [number, number];
 }
 
 export interface EducationRequirement {
   /** 1 high school, 2 associate, 3 bachelor's, 4 master's/MBA, 5 doctorate. */
   level: number;
+  /** As the JD names it: "MBA (Tier 1/Tier 2)", or the level ("Master's degree") when no specific degree is named. */
   label: string;
   required: boolean;
   equivalentExperienceOk: boolean;
   fields: string[];
+  /** A specific degree the JD names ("MBA"), when it names one. */
+  degree?: string | null;
+  /** An institute qualifier the JD adds ("Tier 1/Tier 2", "premier institute"). */
+  qualifier?: string | null;
 }
 
 export interface StructuredJD {
@@ -169,6 +179,8 @@ export interface KeywordMatch {
   term: string;
   category: KeywordCategory;
   priority: Priority;
+  /** See JDKeyword.hardRequirement. */
+  hardRequirement?: boolean;
   matchType: MatchType;
   matchedAs: string | null;
   credit: number;
@@ -183,6 +195,8 @@ export interface KeywordMatch {
   recencyBoosted: boolean;
   /** The resume line that proves the match (null when not found). */
   evidence?: string | null;
+  /** The JD line the keyword was extracted from, matched words in [brackets] (null without a JD text). */
+  jdEvidence?: string | null;
 }
 
 export interface FormattingIssue {
@@ -298,6 +312,8 @@ export interface AnalysisResult {
   knockouts: KnockoutReport | null;
   /** Where each contact detail was found (or why not). */
   contactPresence?: ContactPresence[];
+  /** Campus placement template detected (roll number + batch, or campus-recruitment JD): formatting/contact checks are warnings. */
+  campus?: { signals: string[] } | null;
   /** How far the extracted text can be trusted (columns, roles vs stated years, name, education, contact). */
   parseConfidence?: { level: "high" | "medium" | "low"; reasons: string[] };
   keywords: {
@@ -334,6 +350,8 @@ export interface AnalysisResult {
 
 export interface KnockoutCheck {
   id: string;
+  /** hard = a stated requirement (can be a knockout); preference = desirable/preferred, never an auto-reject. Default hard. */
+  kind?: "hard" | "preference";
   label: string;
   /** What the JD asks for (quoted or summarized). */
   requirement: string;
@@ -355,5 +373,8 @@ export interface KnockoutReport {
   /** How far the extracted resume text can be trusted for these checks. */
   parseConfidence?: "high" | "medium" | "low";
   summary: string;
+  /** Hard knockouts: stated requirements. The verdict comes from these only. */
   checks: KnockoutCheck[];
+  /** Preferences you don't meet (desirable/preferred items): shown apart, never an auto-reject. */
+  preferences?: KnockoutCheck[];
 }

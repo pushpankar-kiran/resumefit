@@ -16,6 +16,7 @@ import { AutoTailor } from "@/components/AutoTailor";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { AnalysisResult } from "@/lib/types";
+import { selfCheck } from "@/lib/selfcheck";
 
 interface ApiError {
   code: string;
@@ -175,6 +176,16 @@ export default function Home() {
               ))}
             </ul>
           )}
+
+          {(() => {
+            // Same consistency pass as the end of the report: counts reconcile, every keyword is from the JD, no contradicting checks.
+            const sc = selfCheck(result);
+            return (
+              <p className={sc.ok ? "text-xs text-muted-foreground" : "text-xs font-medium text-[hsl(var(--bad))]"} title={sc.line}>
+                {sc.ok ? "✓" : "✗"} Self-check: {sc.items.map((i) => `${i.ok ? "" : "FAILED: "}${i.label}`).join(" · ")}
+              </p>
+            );
+          })()}
 
           <Tabs value={tab} onValueChange={setTab}>
             <TabsList>

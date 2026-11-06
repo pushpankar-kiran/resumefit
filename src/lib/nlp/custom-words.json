@@ -1,0 +1,7 @@
+{
+  "_comment": [
+    "Your own dictionary: words here are never flagged as misspellings (case-insensitive).",
+    "Add product names, coined terms or jargon from your field, then rebuild (npm run build) or restart the dev server."
+  ],
+  "words": ["guardrailed"]
+}

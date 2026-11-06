@@ -143,7 +143,11 @@ function clearanceCheck(jd: string, resume: ParsedResume): KnockoutCheck | null 
 
 function certificationChecks(jd: string, matches: KeywordMatch[], resumeText: string): KnockoutCheck[] {
   const out: KnockoutCheck[] = [];
-  for (const m of matches.filter((x) => x.category === "certification" && x.priority === "must")) {
+  // Only a certification the JD states as required ("must", "required", "minimum", or under a
+  // Requirements/Qualifications heading) can be a knockout. "Desirable", "preferred" and items
+  // under Preference/Key Attributes headings never are. (hardRequirement is unset for AI-parsed
+  // keywords; their must-have priority decides.)
+  for (const m of matches.filter((x) => x.category === "certification" && x.priority === "must" && x.hardRequirement !== false)) {
     const sentence = sentenceWith(jd, new RegExp(m.term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
     const hard = !!sentence && /\b(required|must|mandatory|need to hold|active)\b/i.test(sentence);
     const ok = m.credit >= 0.8;
@@ -158,6 +162,18 @@ function certificationChecks(jd: string, matches: KeywordMatch[], resumeText: st
       advice: ok ? "Write the full name and acronym once, e.g. with the year earned." : hard ? `Listed as required. If you hold ${m.term}, add it to a Certifications section; if not, expect a screen-out question.` : `Listed as a must-have. Add ${m.term} if you hold it, or mention progress toward it.`,
     });
   }
+  // Desirable / preferred certifications you don't hold: a preference, never an auto-reject.
+  for (const m of matches.filter((x) => x.category === "certification" && (x.priority === "nice" || x.hardRequirement === false) && x.credit < 0.8))
+    out.push({
+      id: `pref-cert-${m.term}`,
+      kind: "preference",
+      label: `Certification: ${m.term}`,
+      requirement: m.jdEvidence?.replace(/[[\]]/g, "") ?? `${m.term} (preferred)`,
+      candidate: m.matchType === "related" && m.matchedAs ? `Not found (related: "${m.matchedAs}")` : "Not found",
+      status: "risk",
+      confidence: "high",
+      advice: `Preferred, not required. If you hold ${m.term}, list it under Certifications; otherwise lead with the related experience you have.`,
+    });
   // Professional licenses that aren't in the skill taxonomy.
   const lic = jd.match(/\b(valid|active|current)\s+([A-Z][A-Za-z]+(?:\s[A-Z][A-Za-z]+)*\s)?(license|licensure|licence)\b[^.\n]{0,60}/i);
   if (lic) {
@@ -199,6 +215,7 @@ function yearsCheck(jd: StructuredJD, resume: ParsedResume): KnockoutCheck | nul
   const computed = resume.totalYears;
   const base = {
     id: "years",
+    kind: preferred ? ("preference" as const) : ("hard" as const),
     label: preferred ? "Preferred years of experience" : "Minimum years of experience",
     requirement: `${need}+ years${preferred ? " (preferred)" : ""}`,
   };
@@ -240,7 +257,7 @@ function yearsCheck(jd: StructuredJD, resume: ParsedResume): KnockoutCheck | nul
   };
 }
 
-function degreeCheck(jd: StructuredJD, resume: ParsedResume): KnockoutCheck | null {
+function degreeCheck(jd: StructuredJD, resume: ParsedResume, campus = false): KnockoutCheck | null {
   const req = jd.education;
   if (!req || !req.required) return null;
   const entries = resumeEducation(resume);
@@ -266,13 +283,32 @@ function degreeCheck(jd: StructuredJD, resume: ParsedResume): KnockoutCheck | nu
             : "A required degree is a common knockout filter. Add an Education section that names the degree clearly.",
         };
   }
+  const name = (e: (typeof entries)[number]) => `${e.degree || LEVEL_LABEL[e.level]}${req.degree === "MBA" && e.mbaEquivalent && !/\bmba\b/i.test(e.degree) ? " (MBA-equivalent)" : ""}`;
+  const label = (e: (typeof entries)[number]) => `${name(e)}${e.year ? ` (${e.inProgress ? `expected ${e.year}` : e.year})` : ""}`;
+  // An institute tier can't be read from a resume: say so instead of guessing.
+  const tierNote = req.qualifier ? ` The JD also asks for a ${req.qualifier} institute, which an ATS can't check from the resume; recruiters judge it.` : "";
+  if (req.degree === "MBA") {
+    const mba = entries.find((e) => e.mbaEquivalent);
+    if (mba && !mba.inProgress) return { ...base, candidate: label(mba), status: "pass", confidence: mba.year ? "high" : "medium", advice: `Meets the MBA requirement.${tierNote}` };
+    if (mba && campus) return inProgressOnCampus(base, `${label(mba)}, in progress`, name(mba), tierNote);
+    if (mba)
+      return {
+        ...base,
+        candidate: `${label(mba)}, in progress`,
+        status: "risk",
+        confidence: "medium",
+        advice: `Your ${name(mba)} is still in progress. Forms often ask whether the degree is completed; keep "Expected ${mba.year}" next to it and check whether the employer hires final-year candidates.${tierNote}`,
+      };
+    const masters = entries.find((e) => e.level >= 4);
+    if (masters)
+      return { ...base, candidate: label(masters), status: "risk", confidence: "medium", advice: `The JD names an MBA; your ${name(masters)} is a master's degree but not an MBA or an equivalent management programme (PGPM, PGDM...). Expect a question on it.${tierNote}` };
+  }
   // Highest completed degree, and the highest overall (which may still be in progress).
   const top = entries[0];
   const done = entries.find((e) => !e.inProgress);
-  const name = (e: (typeof entries)[number]) => e.degree || LEVEL_LABEL[e.level];
-  const label = (e: (typeof entries)[number]) => `${name(e)}${e.year ? ` (${e.inProgress ? `expected ${e.year}` : e.year})` : ""}`;
   if (done && done.level >= req.level)
     return { ...base, candidate: label(done), status: "pass", confidence: done.year ? "high" : "medium", advice: "Meets the degree requirement." };
+  if (top.inProgress && top.level >= req.level && campus) return inProgressOnCampus(base, `${label(top)}, in progress`, name(top), tierNote);
   if (top.inProgress && top.level >= req.level)
     return {
       ...base,
@@ -289,6 +325,35 @@ function degreeCheck(jd: StructuredJD, resume: ParsedResume): KnockoutCheck | nu
     advice: req.equivalentExperienceOk
       ? "Below the stated degree, but equivalent experience is accepted. Make your years and scope obvious."
       : "A required degree is a common knockout filter. If you have it, make sure the Education section names the degree clearly (e.g. \"B.S. in Computer Science\").",
+  };
+}
+
+/** Campus hiring is aimed at final-year students: an in-progress degree is the expected case, not a borderline knockout. */
+function inProgressOnCampus(base: { id: string; label: string; requirement: string }, candidate: string, degree: string, tierNote: string): KnockoutCheck {
+  return {
+    ...base,
+    candidate,
+    status: "pass",
+    confidence: "medium",
+    advice: `This looks like campus hiring, where final-year candidates are usually eligible with an in-progress ${degree}. Confirm the eligibility rules with your placement office.${tierNote}`,
+  };
+}
+
+/** A preferred (not required) degree the resume doesn't show. */
+function preferredDegree(jd: StructuredJD, resume: ParsedResume): KnockoutCheck | null {
+  const req = jd.education;
+  if (!req || req.required) return null;
+  const top = resumeEducation(resume)[0];
+  const met = !!top && top.level >= req.level && (req.degree !== "MBA" || !!top.mbaEquivalent);
+  return {
+    id: "pref-degree",
+    kind: "preference",
+    label: "Preferred degree",
+    requirement: `${req.label} (preferred)`,
+    candidate: top ? top.degree || LEVEL_LABEL[top.level] : "No degree detected",
+    status: met ? "pass" : "risk",
+    confidence: "medium",
+    advice: met ? "Meets the preferred degree." : "Preferred, not required: lead with experience and results.",
   };
 }
 
@@ -311,6 +376,7 @@ function languageChecks(jd: string, resume: ParsedResume): KnockoutCheck[] {
       label: `Language: ${lang[0].toUpperCase()}${lang.slice(1)}`,
       requirement: sentence,
       candidate: has ? "Mentioned on resume" : "Not mentioned",
+      kind: preferred ? "preference" : "hard",
       status: has ? "pass" : preferred ? "risk" : "fail",
       confidence: "high",
       advice: has ? "Add your level (e.g. \"Spanish: professional working proficiency\") so it's searchable." : `Add a Languages line if you speak ${lang[0].toUpperCase()}${lang.slice(1)}; language filters are common on these roles.`,
@@ -372,6 +438,7 @@ export function screenKnockouts(
   resume: ParsedResume,
   matches: KeywordMatch[],
   parse: { level: Confidence; reasons: string[] } = { level: "high", reasons: [] },
+  opts: { campus?: boolean } = {},
 ): KnockoutReport {
   const raw = [
     locationCheck(jdText, resume),
@@ -379,12 +446,16 @@ export function screenKnockouts(
     clearanceCheck(jdText, resume),
     ...certificationChecks(jdText, matches, resume.text),
     yearsCheck(jd, resume),
-    degreeCheck(jd, resume),
+    degreeCheck(jd, resume, !!opts.campus),
+    preferredDegree(jd, resume),
     ...languageChecks(jdText, resume),
   ].filter((c): c is KnockoutCheck => !!c);
+  // Preferences ("desirable", "preferred", Preference: sections) are listed apart, only when
+  // unmet, and never change the verdict.
+  const preferences = raw.filter((c) => c.kind === "preference" && c.status !== "pass");
   // A check can't be more certain than the text it read. A low-confidence fail is never an
   // auto-reject verdict: it becomes "could not verify, check the extracted text".
-  const checks = raw.map((c): KnockoutCheck => {
+  const checks = raw.filter((c) => c.kind !== "preference").map((c): KnockoutCheck => {
     const confidence = lower(c.confidence, parse.level);
     if (c.status === "fail" && confidence === "low")
       return { ...c, confidence, status: "unverifiable", advice: `${CHECK_EXTRACTED}${parse.reasons.length ? ` (${parse.reasons.join(", ")})` : ""} ${c.advice}` };
@@ -398,7 +469,7 @@ export function screenKnockouts(
     // A low-confidence parse can never produce an auto-reject or an all-clear: it's unverified.
     status: parse.level === "low" && checks.length ? "unverified" : fails ? "likely-reject" : unverified ? "unverified" : risks ? "review" : "clear",
     parseConfidence: parse.level,
-    summary: parse.level === "low" && checks.length
+    summary: (parse.level === "low" && checks.length
       ? `Could not verify: the resume text was parsed with low confidence (${parse.reasons.join("; ")}). Check the extracted text before trusting this screen.`
       : fails
       ? `${fails} likely knockout${fails > 1 ? "s" : ""}: an employer's ATS would probably auto-reject this application before ranking it.${unverified ? ` ${unverified} more could not be verified.` : ""}`
@@ -408,7 +479,9 @@ export function screenKnockouts(
           ? `${risks} possible knockout${risks > 1 ? "s" : ""} to check before applying.`
           : checks.length
             ? "No knockout risks found in the requirements we could check."
-            : "The JD has no screening requirements we could check (location, authorization, clearance, certifications, years, degree, languages).",
+            : "The JD has no screening requirements we could check (location, authorization, clearance, certifications, years, degree, languages).") +
+      (preferences.length ? ` ${preferences.length} preference${preferences.length > 1 ? "s" : ""} you don't meet ${preferences.length > 1 ? "are" : "is"} listed separately (never an automatic rejection).` : ""),
     checks,
+    preferences,
   };
 }
