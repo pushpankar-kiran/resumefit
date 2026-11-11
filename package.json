@@ -1,6 +1,6 @@
 {
   "name": "ats-resume-analyzer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Local ATS resume analyzer: scores a resume (PDF/DOCX) against a job description with evidence, knockouts, parse checks and layout-preserving tailoring.",
   "license": "MIT",
   "repository": {
